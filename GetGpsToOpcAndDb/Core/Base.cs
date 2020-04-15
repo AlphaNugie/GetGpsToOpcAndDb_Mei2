@@ -129,7 +129,7 @@ namespace GetGpsToOpcAndDb.Core
         /// <summary>
         /// 是否启用转换（经纬度转换为本地坐标）
         /// </summary>
-        public static bool ConvertEnabled = false;
+        public static bool ConvertEnabled { get; set; }
 
         /// <summary>
         /// XY坐标轴坐标值系数、偏移量数组，长度为4，分别代表X系数,X偏移量,Y系数,Y偏移量
@@ -161,54 +161,6 @@ namespace GetGpsToOpcAndDb.Core
         /// </summary>
         public static Coordinate TrackCoordinate = new Coordinate();
 
-        //private static double /*ground_lat = 0, ground_lon = 0, */track_lat = 0, track_lon = 0;
-        ///// <summary>
-        ///// 本地原点纬度
-        ///// </summary>
-        //public static double GroundZeroLatitude
-        //{
-        //    get { return ground_lat; }
-        //    set
-        //    {
-        //        ground_lat = value;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 本地原点经度
-        ///// </summary>
-        //public static double GroundZeroLongitude
-        //{
-        //    get { return ground_lon; }
-        //    set
-        //    {
-        //        ground_lon = value;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 大机轨道起点纬度
-        ///// </summary>
-        //public static double TrackLatitude
-        //{
-        //    get { return track_lat; }
-        //    set { track_lat = value; }
-        //}
-
-        ///// <summary>
-        ///// 大机轨道起点经度
-        ///// </summary>
-        //public static double TrackLongitude
-        //{
-        //    get { return track_lon; }
-        //    set { track_lon = value; }
-        //}
-
-        ///// <summary>
-        ///// 大机轨道起点本地XY坐标
-        ///// </summary>
-        //public static double[] TrackCoors = new double[] { 0, 0 };
-
         /// <summary>
         /// WGS84大地坐标系的ID
         /// </summary>
@@ -217,12 +169,12 @@ namespace GetGpsToOpcAndDb.Core
         /// <summary>
         /// 真北到本地北的夹角，单位°（逆时针为正，顺时针为负）
         /// </summary>
-        public static double LocalNorthingRotated = 0;
+        public static double LocalNorthingRotated { get; set; }
 
         /// <summary>
         /// 航向角校正值（°）
         /// </summary>
-        public static double HeadingOffset = 0;
+        public static double HeadingOffset { get; set; }
 
         private static double height_zero_ante = 0;
         /// <summary>
@@ -282,7 +234,7 @@ namespace GetGpsToOpcAndDb.Core
         /// <summary>
         /// 俯仰轴到回转轴的距离（米）
         /// </summary>
-        public static double DistPitch2YawAxis = 0;
+        public static double DistPitch2YawAxis { get; set; }
 
         private static double dist_tip_pitch_h = 0;
         /// <summary>
@@ -322,7 +274,7 @@ namespace GetGpsToOpcAndDb.Core
         /// <summary>
         /// 定位天线在垂直大臂方向距对称轴的距离
         /// </summary>
-        public static double Dist2SymAxis = 0;
+        public static double Dist2SymAxis { get; set; }
 
         /// <summary>
         /// 是否沿本地南北行走（为否则沿本地东西行走）
@@ -381,16 +333,10 @@ namespace GetGpsToOpcAndDb.Core
                     BaseConst.ConvertEnabled = BaseConst.IniHelper.ReadData("Conversion", "ConvertEnabled").Equals("1");
                     BaseConst.GroundZeroPosition.Update(double.Parse(BaseConst.IniHelper.ReadData("Conversion", "GroundZeroLatitude")), double.Parse(BaseConst.IniHelper.ReadData("Conversion", "GroundZeroLongitude")), double.Parse(BaseConst.IniHelper.ReadData("Conversion", "GroundZeroAltitude")));
                     BaseConst.TrackPosition.Update(double.Parse(BaseConst.IniHelper.ReadData("Conversion", "TrackLatitude")), double.Parse(BaseConst.IniHelper.ReadData("Conversion", "TrackLongitude")), double.Parse(BaseConst.IniHelper.ReadData("Conversion", "TrackAltitude")));
-                    //BaseConst.GroundZeroLatitude = double.Parse(BaseConst.IniHelper.ReadData("Conversion", "GroundZeroLatitude"));
-                    //BaseConst.GroundZeroLongitude = double.Parse(BaseConst.IniHelper.ReadData("Conversion", "GroundZeroLongitude"));
-                    //BaseConst.TrackLatitude = double.Parse(BaseConst.IniHelper.ReadData("Conversion", "TrackLatitude"));
-                    //BaseConst.TrackLongitude = double.Parse(BaseConst.IniHelper.ReadData("Conversion", "TrackLongitude"));
-                    GetCoordinates(BaseConst.TrackPosition.Latitude, BaseConst.TrackPosition.Longitude, ref x, ref y);
-                    BaseConst.TrackCoordinate.Update(x, y, BaseConst.TrackPosition.Altitude);
-                    BaseConst.AxisRatios = BaseConst.IniHelper.ReadData("Conversion", "AxisValueExp").Split(',', 'm').Select(p => double.Parse(p.Equals("-") || p.Equals(string.Empty) ? p + "1" : p)).ToArray();
-                    BaseConst.AxisSwapped = BaseConst.IniHelper.ReadData("Conversion", "AxisSwapped").Equals("1");
                     BaseConst.LocalNorthingRotated = double.Parse(BaseConst.IniHelper.ReadData("Conversion", "LocalNorthingRotated"));
                     //姿态
+                    BaseConst.AxisRatios = BaseConst.IniHelper.ReadData("Conversion", "AxisValueExp").Split(',', 'm').Select(p => double.Parse(p.Equals("-") || p.Equals(string.Empty) ? p + "1" : p)).ToArray();
+                    BaseConst.AxisSwapped = BaseConst.IniHelper.ReadData("Conversion", "AxisSwapped").Equals("1");
                     BaseConst.HeadingOffset = double.Parse(BaseConst.IniHelper.ReadData("Posture", "HeadingOffset"));
                     BaseConst.HeightZero_Ante = double.Parse(BaseConst.IniHelper.ReadData("Posture", "HeightZero_Ante"));
                     BaseConst.AnteRaisedHeight = double.Parse(BaseConst.IniHelper.ReadData("Posture", "AnteRaisedHeight"));
@@ -400,6 +346,9 @@ namespace GetGpsToOpcAndDb.Core
                     BaseConst.DistTip2PitchAxisVer = double.Parse(BaseConst.IniHelper.ReadData("Posture", "DistTip2PitchAxisVer"));
                     BaseConst.Dist2SymAxis = double.Parse(BaseConst.IniHelper.ReadData("Posture", "Dist2SymAxis"));
                     BaseConst.WalkingNorth = BaseConst.IniHelper.ReadData("Posture", "WalkingNorth").Equals("1");
+
+                    GetCoordinates(BaseConst.TrackPosition.Latitude, BaseConst.TrackPosition.Longitude, ref x, ref y);
+                    BaseConst.TrackCoordinate.Update(x, y, BaseConst.TrackPosition.Altitude);
                 }
                 catch (Exception) { }
 

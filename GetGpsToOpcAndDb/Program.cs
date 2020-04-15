@@ -49,6 +49,7 @@ namespace GetGpsToOpcAndDb
             //    Console.WriteLine(string.Format("x: {0}, y: {1}", point.XPrime, point.YPrime));
             //}
             //int test = int.Parse("+100");
+            //string test = string.Format("{0:f3}", 9.9);
             #endregion
 
             Application.EnableVisualStyles();

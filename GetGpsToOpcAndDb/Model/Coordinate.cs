@@ -12,7 +12,7 @@ namespace GetGpsToOpcAndDb.Model
     /// </summary>
     public class Coordinate
     {
-        private double x, y, z, xp, yp, xc, yc;
+        private double x, y, z, xp, yp, zp, xc, yc, zc;
 
         #region 原始坐标
         /// <summary>
@@ -23,9 +23,9 @@ namespace GetGpsToOpcAndDb.Model
             get { return this.x; }
             set
             {
-                this.x = value;
-                this.xp = this.x * BaseConst.AxisRatios[0] + BaseConst.AxisRatios[1];
-                this.xc = this.xp - BaseConst.TrackCoordinate.xp;
+                this.x = Math.Round(value, 3);
+                this.xp = Math.Round(this.x * BaseConst.AxisRatios[0] + BaseConst.AxisRatios[1], 3);
+                this.xc = Math.Round(this.xp - BaseConst.TrackCoordinate.xp, 3);
             }
         }
 
@@ -37,9 +37,9 @@ namespace GetGpsToOpcAndDb.Model
             get { return this.y; }
             set
             {
-                this.y = value;
-                this.yp = this.y * BaseConst.AxisRatios[2] + BaseConst.AxisRatios[3];
-                this.yc = this.yp - BaseConst.TrackCoordinate.yp;
+                this.y = Math.Round(value, 3);
+                this.yp = Math.Round(this.y * BaseConst.AxisRatios[2] + BaseConst.AxisRatios[3], 3);
+                this.yc = Math.Round(this.yp - BaseConst.TrackCoordinate.yp, 3);
             }
         }
 
@@ -51,8 +51,10 @@ namespace GetGpsToOpcAndDb.Model
             get { return this.z; }
             set
             {
-                this.z = value;
-                this.ZClaimer = this.z - BaseConst.TrackCoordinate.z;
+                this.z = Math.Round(value, 3);
+                this.zp = this.z;
+                this.zc = Math.Round(this.zp - BaseConst.TrackCoordinate.z, 3);
+                //this.ZClaimer = this.z - BaseConst.TrackCoordinate.z;
             }
         }
         #endregion
@@ -61,32 +63,17 @@ namespace GetGpsToOpcAndDb.Model
         /// <summary>
         /// 处理后X坐标：X'
         /// </summary>
-        public double XPrime
-        {
-            get { return !BaseConst.AxisSwapped ? this.xp : this.yp; }
-            //set
-            //{
-            //    if (!BaseConst.AxisSwapped)
-            //        this.xp = value;
-            //    else
-            //        this.yp = value;
-            //}
-        }
+        public double XPrime { get { return !BaseConst.AxisSwapped ? this.xp : this.yp; } }
 
         /// <summary>
         /// 处理后Y坐标：Y'
         /// </summary>
-        public double YPrime
-        {
-            get { return !BaseConst.AxisSwapped ? this.yp : this.xp; }
-            //set
-            //{
-            //    if (!BaseConst.AxisSwapped)
-            //        this.yp = value;
-            //    else
-            //        this.xp = value;
-            //}
-        }
+        public double YPrime { get { return !BaseConst.AxisSwapped ? this.yp : this.xp; } }
+
+        /// <summary>
+        /// 处理后Z坐标：Z'
+        /// </summary>
+        public double ZPrime { get { return this.zp; } }
         #endregion
 
         #region 单机坐标
@@ -103,7 +90,7 @@ namespace GetGpsToOpcAndDb.Model
         /// <summary>
         /// 相对于单机轨道起点的Z坐标
         /// </summary>
-        public double ZClaimer { get; set; }
+        public double ZClaimer { get { return this.zc; } }
         #endregion
 
         /// <summary>
@@ -133,6 +120,38 @@ namespace GetGpsToOpcAndDb.Model
             this.X = x;
             this.Y = y;
             this.Z = z;
+        }
+
+        /// <summary>
+        /// 将坐标对象根据变换后坐标转换为字符串
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return this.ToString("prime");
+        }
+
+        /// <summary>
+        /// 将坐标对象根据指定的坐标类型转换为字符串
+        /// </summary>
+        /// <param name="param">3种坐标类型：default（原始坐标），prime（变换后坐标）, claimer（单机）</param>
+        /// <returns></returns>
+        public string ToString(string param)
+        {
+            string output;
+            switch (param)
+            {
+                case "prime":
+                    output = string.Format("{0}, {1}, {2}", this.XPrime, this.YPrime, this.ZPrime);
+                    break;
+                case "claimer":
+                    output = string.Format("{0}, {1}, {2}", this.XClaimer, this.YClaimer, this.ZClaimer);
+                    break;
+                default:
+                    output = string.Format("{0}, {1}, {2}", this.X, this.Y, this.Z);
+                    break;
+            }
+            return output;
         }
     }
 }

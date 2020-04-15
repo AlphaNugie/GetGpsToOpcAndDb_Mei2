@@ -174,29 +174,45 @@ namespace GetGpsToOpcAndDb.Model
         #endregion
 
         #region 本地坐标
-        //private Coordinate local_coor_ante = new Coordinate();
-        //private Coordinate local_coor_pitch = new Coordinate();
-        //private Coordinate local_coor_yaw = new Coordinate();
-        //private Coordinate local_coor_tip = new Coordinate();
+        private Coordinate local_coor_ante = new Coordinate();
+        private Coordinate local_coor_pitch = new Coordinate();
+        private Coordinate local_coor_yaw = new Coordinate();
+        private Coordinate local_coor_tip = new Coordinate();
         /// <summary>
         /// 定位天线本地坐标，转换后XYZ分别指向东、北、上，不转换分别为经度、纬度、海拔
         /// </summary>
-        public Coordinate LocalCoor_Ante { get; set; } = new Coordinate();
+        public Coordinate LocalCoor_Ante
+        {
+            get { return this.local_coor_ante; }
+            set { this.local_coor_ante = value; }
+        }
 
         /// <summary>
         /// 俯仰轴本地坐标，转换后XYZ分别指向东、北、上，不转换分别为经度、纬度、海拔
         /// </summary>
-        public Coordinate LocalCoor_PitchAxis { get; set; } = new Coordinate();
+        public Coordinate LocalCoor_PitchAxis
+        {
+            get { return this.local_coor_pitch; }
+            set { this.local_coor_pitch = value; }
+        }
 
         /// <summary>
         /// 回转轴本地坐标，转换后XYZ分别指向东、北、上，不转换分别为经度、纬度、海拔
         /// </summary>
-        public Coordinate LocalCoor_YawAxis { get; set; } = new Coordinate();
+        public Coordinate LocalCoor_YawAxis
+        {
+            get { return this.local_coor_yaw; }
+            set { this.local_coor_yaw = value; }
+        }
 
         /// <summary>
         /// 臂架顶端本地坐标，转换后XYZ分别指向东、北、上，不转换分别为经度、纬度、海拔
         /// </summary>
-        public Coordinate LocalCoor_Tip { get; set; } = new Coordinate();
+        public Coordinate LocalCoor_Tip
+        {
+            get { return this.local_coor_tip; }
+            set { this.local_coor_tip = value; }
+        }
         #endregion
 
         #region GPGGA
@@ -417,7 +433,7 @@ namespace GetGpsToOpcAndDb.Model
             this.LocalCoor_PitchAxis.Update(x2, y2, z2);
             this.LocalCoor_YawAxis.Update(x3, y3, z3);
             this.LocalCoor_Tip.Update(x4, y4, z4);
-            this.WalkingPosition = BaseConst.WalkingNorth == BaseConst.AxisSwapped ? this.LocalCoor_YawAxis.XPrime : this.LocalCoor_YawAxis.YPrime;
+            this.WalkingPosition = BaseConst.WalkingNorth == BaseConst.AxisSwapped ? this.LocalCoor_YawAxis.XClaimer : this.LocalCoor_YawAxis.YClaimer;
         }
         #endregion
 

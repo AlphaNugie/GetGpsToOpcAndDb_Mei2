@@ -34,6 +34,8 @@ namespace GetGpsToOpcAndDb
         private readonly ClientType clientModel = ClientType.None;
         private readonly CommandStorage commandStorage = new CommandStorage();
         private const int LONGITUDE_WRITE_HANDLE = 101, LATITUDE_WRITE_HANDLE = 102, ALTITUDE_WRITE_HANDLE = 103, PITCH_WRITE_HANDLE = 106, PITCH_READ_HANDLE = 104, YAW_WRITE_HANDLE = 105, RANDOM_WRITE_HANDLE = 107; //经度，纬度，海拔，俯仰，回转角等OPC项的客户端句柄
+        private const string right = "▶", left = "◀";
+        private readonly int expand_size = 438;
         #endregion
 
         /// <summary>
@@ -215,12 +217,6 @@ namespace GetGpsToOpcAndDb
                     MessageBox.Show(message, "提示信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
-                //string message;
-                //if (!BaseConst.OpcHelper.ConnectRemoteServer(this.textBox_RemoteServerIP.Text, this.remoteServerName, out message))
-                //{
-                //    MessageBox.Show(message, "提示信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                //    return false;
-                //}
 
                 BaseConst.IniHelper.WriteData("Opc", "OpcServerName", remoteServerName); //保存OPC服务名称
                 //TODO 连接OPC服务后启动重连TIMER
@@ -269,46 +265,6 @@ namespace GetGpsToOpcAndDb
             }
             return true;
         }
-
-        ///// <summary>
-        ///// 重新连接OPC
-        ///// </summary>
-        //private void Reconn()
-        //{
-        //    string info = string.Empty;
-        //    try
-        //    {
-        //        if (BaseConst.OpcHelper.OpcServer.ServerState != (int)OPCServerState.OPCRunning)
-        //            this.ReconnDetail(out info);
-        //    }
-        //    //假如捕捉到COMException
-        //    catch (COMException)
-        //    {
-        //        this.ReconnDetail(out info);
-        //    }
-        //    this.label_OpcInfo.Text = info;
-        //}
-
-        ///// <summary>
-        ///// 重新连接OPC
-        ///// </summary>
-        ///// <param name="info">返回信息</param>
-        //private void ReconnDetail(out string info)
-        //{
-        //    info = string.Empty;
-        //    try
-        //    {
-        //        string hostIp = this.textBox_RemoteServerIP.Text;
-        //        BaseConst.OpcHelper.OpcServer = new OPCServer();
-        //        info = string.Format("Opc server {0} at {1} has failed, trying reconnecting", this.remoteServerName, hostIp);
-        //        BaseConst.OpcHelper.OpcServer.Connect(this.remoteServerName, hostIp);
-        //        info = string.Format("Reconnecting opc server {0} at {1} succeeded.", this.remoteServerName, hostIp);
-        //        BaseConst.OpcHelper.OpcServer.OPCGroups.RemoveAll();
-        //        if (BaseConst.OpcHelper.CreateDefaultGroup(out info))
-        //            info = string.Format("OpcGroup of opcServer {0} at {1} created alright", this.remoteServerName, hostIp);
-        //    }
-        //    catch (Exception) { }
-        //}
         #endregion
 
         #region TCPCLIENT
@@ -719,6 +675,14 @@ namespace GetGpsToOpcAndDb
             BaseConst.OpcHelper.IsGroupActive = this.checkBox_IsGroupActive.Checked;
         }
 
+        private void Button_Expand_Click(object sender, EventArgs e)
+        {
+            bool going_right = this.button_Expand.Text.Equals(right);
+            this.textBox_Info.Visible = going_right;
+            this.Width += this.expand_size * (going_right ? 1 : -1);
+            this.button_Expand.Text = going_right ? left : right;
+        }
+
         /// <summary>
         /// 订阅状态
         /// </summary>
@@ -775,6 +739,29 @@ namespace GetGpsToOpcAndDb
             this.label_OpcError.Text = this.GnssInfo.DictErrorMessages["OPC"];
             this.statusLabel_WebService.Text = this.GnssInfo.DictErrorMessages["WebService"];
             this.statusLabel_DataService.Text = this.GnssInfo.DictErrorMessages["DataService"];
+
+            this.textBox_Info.Text = this.GetCompleteMessage();
+        }
+
+        /// <summary>
+        /// 获取所有信息
+        /// </summary>
+        /// <returns></returns>
+        private string GetCompleteMessage()
+        {
+            string output = string.Format(@"经度：{0}
+纬度：{1}，
+海拔：{2}，
+本地XYZ（对内）：{3}，
+本地XYZ（对外）：{4}，
+俯仰角：{5}，
+回转角：{6}，
+行走位置：{7}，
+落料口（本地）：{8}，
+俯仰轴（本地）：{9}，
+回转轴（本地）：{10}，
+回转轴（单机）：{11}", this.GnssInfo.Longitude, this.GnssInfo.Latitude, this.GnssInfo.Altitude, this.GnssInfo.LocalCoor_Ante.ToString("default"), this.GnssInfo.LocalCoor_Ante.ToString("prime"), this.GnssInfo.PitchAngle, this.GnssInfo.YawAngle, this.GnssInfo.WalkingPosition, this.GnssInfo.LocalCoor_Tip.ToString("prime"), this.GnssInfo.LocalCoor_PitchAxis.ToString("prime"), this.GnssInfo.LocalCoor_YawAxis.ToString("prime"), this.GnssInfo.LocalCoor_YawAxis.ToString("claimer"));
+            return output;
         }
 
         /// <summary>
