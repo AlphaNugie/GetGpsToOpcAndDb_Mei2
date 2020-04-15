@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soapenc12="http://www.w3.org/2003/05/soap-encoding" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope" xmlns:soap11="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://webService.ysu.com" xmlns:soapenc11="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns1="http://security.java" targetNamespace="http://webService.ysu.com" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://webService.ysu.com">
+      <xsd:element name="save_gps_machines">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element minOccurs="1" maxOccurs="1" name="in0" nillable="true" type="xsd:string" />
+            <xsd:element minOccurs="1" maxOccurs="1" name="in1" nillable="true" type="xsd:double" />
+            <xsd:element minOccurs="1" maxOccurs="1" name="in2" nillable="true" type="xsd:double" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="save_gps_machinesResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element minOccurs="1" maxOccurs="1" name="out" type="xsd:boolean" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="NoSuchAlgorithmException" type="ns1:NoSuchAlgorithmException" />
+    </xsd:schema>
+    <xsd:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://security.java">
+      <xsd:complexType name="NoSuchAlgorithmException" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="save_gps_machinesRequest">
+    <wsdl:part name="parameters" element="tns:save_gps_machines" />
+  </wsdl:message>
+  <wsdl:message name="NoSuchAlgorithmException">
+    <wsdl:part name="NoSuchAlgorithmException" element="tns:NoSuchAlgorithmException" />
+  </wsdl:message>
+  <wsdl:message name="save_gps_machinesResponse">
+    <wsdl:part name="parameters" element="tns:save_gps_machinesResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IWbServicePortType">
+    <wsdl:operation name="save_gps_machines">
+      <wsdl:input name="save_gps_machinesRequest" message="tns:save_gps_machinesRequest" />
+      <wsdl:output name="save_gps_machinesResponse" message="tns:save_gps_machinesResponse" />
+      <wsdl:fault name="NoSuchAlgorithmException" message="tns:NoSuchAlgorithmException" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="IWbServiceHttpBinding" type="tns:IWbServicePortType">
+    <wsdlsoap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="save_gps_machines">
+      <wsdlsoap:operation soapAction="" />
+      <wsdl:input name="save_gps_machinesRequest">
+        <wsdlsoap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="save_gps_machinesResponse">
+        <wsdlsoap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="NoSuchAlgorithmException">
+        <wsdlsoap:fault use="literal" name="NoSuchAlgorithmException" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="IWbService">
+    <wsdl:port name="IWbServiceHttpPort" binding="tns:IWbServiceHttpBinding">
+      <wsdlsoap:address location="http://192.168.183.9:8080/webService/services/IWbService" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
