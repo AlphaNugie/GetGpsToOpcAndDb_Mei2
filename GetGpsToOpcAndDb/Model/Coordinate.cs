@@ -1,4 +1,5 @@
 ﻿using GetGpsToOpcAndDb.Core;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace GetGpsToOpcAndDb.Model
     /// <summary>
     /// 3维笛卡尔坐标系XYZ坐标基础类
     /// </summary>
+    [ProtoContract]
     public class Coordinate
     {
         private double x, y, z, xp, yp, zp, xc, yc, zc;
@@ -46,6 +48,7 @@ namespace GetGpsToOpcAndDb.Model
         /// <summary>
         /// Z坐标
         /// </summary>
+        [ProtoMember(5)]
         public double Z
         {
             get { return this.z; }

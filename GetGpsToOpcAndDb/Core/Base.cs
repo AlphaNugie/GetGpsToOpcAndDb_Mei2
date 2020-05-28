@@ -1,4 +1,5 @@
-﻿using CommonLib.Function;
+﻿using CommonLib.Clients;
+using CommonLib.Function;
 using GetGpsToOpcAndDb.Model;
 using GetGpsToOpcAndDb.WbService;
 using Microsoft.SqlServer.Types;
@@ -18,6 +19,11 @@ namespace GetGpsToOpcAndDb.Core
     /// </summary>
     public struct BaseConst
     {
+        /// <summary>
+        /// 日志
+        /// </summary>
+        public static readonly LogClient Log = new LogClient("logs", "getgps", "executable_logs.txt", false, true);
+
         #region 正则表达式
         /// <summary>
         /// 提取NMEA0183 GNSS消息类型的正则表达式（如$GPGGA, 或 #BESTPOSA,）

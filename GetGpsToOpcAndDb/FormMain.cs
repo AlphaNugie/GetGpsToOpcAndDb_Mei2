@@ -1,47 +1,54 @@
 ﻿using CarServer;
 using CommonLib.Clients;
-using CommonLib.Enums;
 using CommonLib.Function;
+using CommonLib.UIControlUtil;
 using GetGpsToOpcAndDb.Core;
 using GetGpsToOpcAndDb.Model;
-using OPCAutomation;
 using OpcLibrary;
+using ProtobufNetLibrary;
+using SerializationFactory;
 using SocketHelper;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using YsuSoftHelper;
-using YsuSoftHelper.ICommond;
-//using YsuSoftHelper.TClass;
+using static CommonLib.Function.TimerEventRaiser;
 
 namespace GetGpsToOpcAndDb
 {
     public partial class FormMain : Form
     {
-        public delegate void OnReceviceCallBack(string msg, byte[] data); //TCP接收事件委托
+        public delegate void OnReceviceCallBack(object sender, ReceivedEventArgs eventArgs); //TCP接收事件委托
 
         #region 私有变量
         private const string OPCGROUP_NAME_READ = "OpcGroupRead", OPCGROUP_NAME_WRITE = "OpcGroupWrite";
         private string remoteServerName = string.Empty; //OPC SERVER名称
         private readonly ClientType clientModel = ClientType.None;
         private readonly CommandStorage commandStorage = new CommandStorage();
+        private readonly TimerEventRaiser raiser = new TimerEventRaiser(1000);
         private const int LONGITUDE_WRITE_HANDLE = 101, LATITUDE_WRITE_HANDLE = 102, ALTITUDE_WRITE_HANDLE = 103, PITCH_WRITE_HANDLE = 106, PITCH_READ_HANDLE = 104, YAW_WRITE_HANDLE = 105, RANDOM_WRITE_HANDLE = 107; //经度，纬度，海拔，俯仰，回转角等OPC项的客户端句柄
         private const string right = "▶", left = "◀";
-        private readonly int expand_size = 438;
+        private readonly int expand_size = 438, width_narrow = 1029;
+        //private TimerEventRaiser raiser = new TimerEventRaiser(1000) { RaiseThreshold = 5000, RaiseInterval = 10000 };
         #endregion
 
         /// <summary>
         /// GPS信息实体类对象
         /// </summary>
         public GnssInfoObject GnssInfo { get; set; }
+
+        private GnssProtoInfo _gnss_proto_info = new GnssProtoInfo();
+        /// <summary>
+        /// 记录所有需传输北斗数据的通用实体类
+        /// </summary>
+        public GnssProtoInfo GnssProtoInfo
+        {
+            get { return _gnss_proto_info; }
+            private set { _gnss_proto_info = value; }
+        }
 
         /// <summary>
         /// 构造器
@@ -51,10 +58,25 @@ namespace GetGpsToOpcAndDb
             InitializeComponent();
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(this.UnhandledException_Raising); //未捕获异常触发事件
             this.GnssInfo = new GnssInfoObject() { ClaimerId = this.textBox_ClaimerId.Text };
+            this.raiser.RaiseThreshold = 10000;
+            this.raiser.ThresholdReached += new ThresholdReachedEventHandler(this.Raiser_ThresholdReached);
             this.InitControls();
 
             //TODO 配置服务地址
             //利用WebService构造器的重载方法，在Config.ini文件中修改，重载方法的endpointConfigurationName参数：App.config文件中的system.ServiceModel=>client=>endpoint节点的name属性值
+            BaseConst.Log.WriteLogsToFile("主窗体初始化完成");
+        }
+
+        /// <summary>
+        /// 超时未接收数据后引发的事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Raiser_ThresholdReached(object sender, ThresholdReachedEventArgs e)
+        {
+            this.GnssInfo.Working = false;
+            //this.TcpDisconnect();
+            //this.TcpConnect();
         }
 
         /// <summary>
@@ -62,6 +84,7 @@ namespace GetGpsToOpcAndDb
         /// </summary>
         private void InitControls()
         {
+            this.Width = this.width_narrow;
             this.timer_OpcUpdate.Interval = BaseConst.OpcHelper.OpcUpdateRate;
             this.timer_UiUpdate.Start();
 
@@ -95,6 +118,7 @@ namespace GetGpsToOpcAndDb
         /// </summary>
         private void Loading()
         {
+            BaseConst.Log.WriteLogsToFile("窗体加载...");
             statusLabel_ServerState.Text = string.Empty;
             statusLabel_ServerStartTime.Text = string.Empty;
             statusLabel_Version.Text = string.Empty;
@@ -105,6 +129,8 @@ namespace GetGpsToOpcAndDb
             //自动采集则TCP自动连接，连接后在状态改变事件内自动发送采集消息
             if (this.checkBox_AutoCollect.Checked)
                 this.TcpConnect();
+            this.raiser.Run();
+            BaseConst.Log.WriteLogsToFile("窗体加载完成");
         }
 
         /// <summary>
@@ -124,8 +150,8 @@ namespace GetGpsToOpcAndDb
         /// <param name="e"></param>
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (this.ysuTcpClient1.IsStart)
-                ysuTcpClient1.StopConnect();
+            if (this.tcpClient.IsStart)
+                tcpClient.StopConnection();
             this.tcpServerMain.Stop();
             this.timer_OpcUpdate.Stop();
             this.timer_Reconn.Stop();
@@ -146,6 +172,44 @@ namespace GetGpsToOpcAndDb
         }
 
         #region 功能
+        /// <summary>
+        /// 获取所有信息
+        /// </summary>
+        /// <returns></returns>
+        private string GetCompleteMessage()
+        {
+            string output = string.Format(@"{12:yyyy-MM-dd HH:mm:ss}=>
+经度：{0}，
+纬度：{1}，
+海拔：{2}，
+本地XYZ（对内）：{3}，
+本地XYZ（对外）：{4}，
+俯仰角：{5}，
+回转角：{6}，
+行走位置：{7}，
+落料口（本地）：{8}，
+俯仰轴（本地）：{9}，
+回转轴（本地）：{10}，
+回转轴（单机）：{11}", this.GnssInfo.Longitude, this.GnssInfo.Latitude, this.GnssInfo.Altitude, this.GnssInfo.LocalCoor_Ante.ToString("default"), this.GnssInfo.LocalCoor_Ante.ToString("prime"), this.GnssInfo.PitchAngle, this.GnssInfo.YawAngle, this.GnssInfo.WalkingPosition, this.GnssInfo.LocalCoor_Tip.ToString("prime"), this.GnssInfo.LocalCoor_PitchAxis.ToString("prime"), this.GnssInfo.LocalCoor_YawAxis.ToString("prime"), this.GnssInfo.LocalCoor_YawAxis.ToString("claimer"), DateTime.Now);
+            return output;
+        }
+
+        /// <summary>
+        /// 更新北斗信息
+        /// </summary>
+        private void UpdateBeidouInfo()
+        {
+            this.GnssProtoInfo.LocalCoor_Tipx = this.GnssInfo.LocalCoor_Tip.XPrime;
+            this.GnssProtoInfo.LocalCoor_Tipy = this.GnssInfo.LocalCoor_Tip.YPrime;
+            this.GnssProtoInfo.LocalCoor_Tipz = this.GnssInfo.LocalCoor_Tip.Z;
+            this.GnssProtoInfo.WalkingPosition = this.GnssInfo.WalkingPosition;
+            this.GnssProtoInfo.PitchAngle = this.GnssInfo.PitchAngle;
+            this.GnssProtoInfo.YawAngle = this.GnssInfo.YawAngle;
+            this.GnssProtoInfo.Working = this.GnssInfo.Working;
+            this.GnssProtoInfo.IsFixed = this.GnssInfo.Quality == GpsQuality.RTKFixed || this.GnssInfo.PositionType == PositionVelocityType.NARROW_INT;
+            this.GnssProtoInfo.PositionQuality = this.GnssInfo.PositionQuality;
+        }
+
         #region OPC方法
         /// <summary>
         /// 枚举OPC SERVER
@@ -281,9 +345,9 @@ namespace GetGpsToOpcAndDb
                 int tmp;
                 if (IPAddress.TryParse(ipStr, out ip) && int.TryParse(textBox_Port.Text, out tmp))
                 {
-                    ysuTcpClient1.ServerIp = ipStr;
-                    ysuTcpClient1.ServerPort = tmp;
-                    ysuTcpClient1.StartConnect();
+                    tcpClient.ServerIp = ipStr;
+                    tcpClient.ServerPort = tmp;
+                    tcpClient.StartConnection();
                     this.tcpServerMain.Start();
                     this.timer1.Start();
                 }
@@ -300,7 +364,7 @@ namespace GetGpsToOpcAndDb
         {
             try
             {
-                ysuTcpClient1.StopConnect();
+                tcpClient.StopConnection();
                 this.timer1.Stop();
                 this.tcpServerMain.Stop();
             }
@@ -324,13 +388,14 @@ namespace GetGpsToOpcAndDb
         /// </summary>
         /// <param name="msg">接收到的十六进制字符串类型数据</param>
         /// <param name="data">接收到的字节数组类型数据</param>
-        public void Receive(string msg, byte[] data)
+        public void Receive(object sender, ReceivedEventArgs eventArgs)
         {
-            string received_data = Encoding.Default.GetString(data); //接收数据
+            this.raiser.Click(eventArgs.ReceivedString);
+            //string received_data = Encoding.Default.GetString(data); //接收数据
             this.Invoke(new Action(() =>
             {
-                gpsallstr_txt.Text = received_data; //原始报文
-                this.GnssInfo.Classify(received_data);
+                gpsallstr_txt.Text = eventArgs.ReceivedString; //原始报文
+                this.GnssInfo.Classify(eventArgs.ReceivedString);
             }));
         }
 
@@ -338,17 +403,17 @@ namespace GetGpsToOpcAndDb
         /// 根据TCP连接状态修改各控件状态
         /// </summary>
         /// <param name="state"></param>
-        public void GetState(TcpClientStateEventArgs stateArgs)
+        public void GetState(StateInfoEventArgs stateArgs)
         {
             try
             {
-                this.button_Connect.Enabled = stateArgs.State != YsuSoftHelper.SocketState.Connected;
-                this.ysuTcpClient1.IsStart = YsuSoftHelper.SocketState.Connected == stateArgs.State;
-                if (stateArgs.State == YsuSoftHelper.SocketState.Connected)
+                this.button_Connect.Enabled = stateArgs.State != SocketHelper.SocketState.Connected;
+                this.tcpClient.IsStart = SocketHelper.SocketState.Connected == stateArgs.State;
+                if (stateArgs.State == SocketHelper.SocketState.Connected)
                 {
                     LblTcpState.Text = "已连接服务器";
                     LblTcpState.ForeColor = Color.FromArgb(0, 192, 0);
-                    ysuTcpClient1.SendData(Encoding.Default.GetBytes(string.Format("&{0}&", clientModel.ToString())));
+                    tcpClient.SendData(string.Format("&{0}&", clientModel.ToString()));
                     if (this.checkBox_AutoCollect.Checked)
                         this.StartSlashEndCollect(true);
                 }
@@ -367,7 +432,7 @@ namespace GetGpsToOpcAndDb
         /// <param name="commands"></param>
         private void SendData(IEnumerable<string> commands)
         {
-            if (!this.ysuTcpClient1.IsStart)
+            if (!this.tcpClient.IsStart)
             {
                 MessageBox.Show("未连接设备", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -383,37 +448,37 @@ namespace GetGpsToOpcAndDb
         /// <param name="command"></param>
         private void SendDataEach(string command)
         {
-            if (!this.ysuTcpClient1.IsStart)
+            if (!this.tcpClient.IsStart)
                 return;
 
             string command_after = command + "\r\n\r\n";
-            this.ysuTcpClient1.SendData(Encoding.Default.GetBytes(command_after));
+            this.tcpClient.SendData(Encoding.Default.GetBytes(command_after));
             //this.lastCommand = command;
             this.commandStorage.PushCommand(command);
         }
         #endregion
 
         #region TCPSERVER
-        /// <summary>
-        /// 向客户端发送命令
-        /// </summary>
-        /// <param name="data"></param>
-        private void SendData(object data)
-        {
-            List<ClientModel> list = this.tcpServerMain.ClientSocketList;
-            if (list == null || list.Count == 0)
-                return;
+        ///// <summary>
+        ///// 向客户端发送命令
+        ///// </summary>
+        ///// <param name="data"></param>
+        //private void SendData(object data)
+        //{
+        //    List<ClientModel> list = this.tcpServerMain.ClientSocketList;
+        //    if (list == null || list.Count == 0)
+        //        return;
 
-            foreach (ClientModel clientModel in list)
-            {
-                if (clientModel == null)
-                    continue;
-                if (clientModel.ClientStyle == CarServer.ClientStyle.WebSocket)
-                    SocketTcpServer.SendToWebClient(clientModel, data.ToString());
-                else
-                    this.tcpServerMain.SendData(clientModel, data.ToString());
-            }
-        }
+        //    foreach (ClientModel clientModel in list)
+        //    {
+        //        if (clientModel == null)
+        //            continue;
+        //        if (clientModel.ClientStyle == CarServer.ClientStyle.WebSocket)
+        //            SocketTcpServer.SendToWebClient(clientModel, data.ToString());
+        //        else
+        //            this.tcpServerMain.SendData(clientModel, data.ToString());
+        //    }
+        //}
         #endregion
         #endregion
 
@@ -516,9 +581,9 @@ namespace GetGpsToOpcAndDb
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TcpClient1_OnReceive(object sender, YsuSoftHelper.ICommond.TcpClientReceviceEventArgs e)
+        private void TcpClient_OnReceive(object sender, ReceivedEventArgs e)
         {
-            try { this.Invoke(new OnReceviceCallBack(Receive), sender.ToString(), e.Data); }
+            try { this.Invoke(new OnReceviceCallBack(Receive), sender, e); }
             catch (Exception ex) { YsuSoftHelper.Helper.logHelper.WriteErrLog("iTcpClient1_OnRecevice", ex); }
         }
 
@@ -527,9 +592,9 @@ namespace GetGpsToOpcAndDb
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TcpClient1_OnStateInfo(object sender, TcpClientStateEventArgs e)
+        private void TcpClient_OnStateInfo(object sender, StateInfoEventArgs e)
         {
-            try { this.Invoke(new MethodInvoker(() => { GetState(e); })); }
+            try { this.Invoke(new MethodInvoker(() => { this.GetState(e); })); }
             catch (Exception ex) { YsuSoftHelper.Helper.logHelper.WriteErrLog("iTcpClient1_OnStateInfo", ex); }
         }
         #endregion
@@ -607,7 +672,7 @@ namespace GetGpsToOpcAndDb
             BaseConst.IniHelper.WriteData("Opc", "LatitudeItemId", this.GnssInfo.LatitudeItemId);
         }
 
-        private void textBox_AltitudeItemId_TextChanged(object sender, EventArgs e)
+        private void TextBox_AltitudeItemId_TextChanged(object sender, EventArgs e)
         {
             this.GnssInfo.AltitudeItemId = this.textBox_AltitudeItemId.Text;
             BaseConst.IniHelper.WriteData("Opc", "AltitudeItemId", this.GnssInfo.AltitudeItemId);
@@ -675,12 +740,41 @@ namespace GetGpsToOpcAndDb
             BaseConst.OpcHelper.IsGroupActive = this.checkBox_IsGroupActive.Checked;
         }
 
+        /// <summary>
+        /// 窗口右侧伸展与收缩
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Button_Expand_Click(object sender, EventArgs e)
         {
             bool going_right = this.button_Expand.Text.Equals(right);
             this.textBox_Info.Visible = going_right;
             this.Width += this.expand_size * (going_right ? 1 : -1);
             this.button_Expand.Text = going_right ? left : right;
+        }
+
+        /// <summary>
+        /// 复制到粘贴板
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Button_CopyToClipboard_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(this.textBox_Info.Text))
+                return;
+
+            Clipboard.SetDataObject(this.textBox_Info.Text);
+            Clipboard.SetText(this.textBox_Info.Text);
+            this.label_Copied.Visible = true;
+            new Thread(new ThreadStart(() =>
+            {
+                Thread.Sleep(1500);
+                this.label_Copied.SafeInvoke(() =>
+                {
+                    this.label_Copied.Visible = false;
+                });
+            }))
+            { IsBackground = true }.Start();
         }
 
         /// <summary>
@@ -737,31 +831,11 @@ namespace GetGpsToOpcAndDb
             //状态指示
             this.label_MessageError.Text = this.GnssInfo.DictErrorMessages["GNSS"];
             this.label_OpcError.Text = this.GnssInfo.DictErrorMessages["OPC"];
+            this.label_ReconnCounter.Text = this.tcpClient.ReConnectedCount.ToString();
             this.statusLabel_WebService.Text = this.GnssInfo.DictErrorMessages["WebService"];
             this.statusLabel_DataService.Text = this.GnssInfo.DictErrorMessages["DataService"];
 
             this.textBox_Info.Text = this.GetCompleteMessage();
-        }
-
-        /// <summary>
-        /// 获取所有信息
-        /// </summary>
-        /// <returns></returns>
-        private string GetCompleteMessage()
-        {
-            string output = string.Format(@"经度：{0}
-纬度：{1}，
-海拔：{2}，
-本地XYZ（对内）：{3}，
-本地XYZ（对外）：{4}，
-俯仰角：{5}，
-回转角：{6}，
-行走位置：{7}，
-落料口（本地）：{8}，
-俯仰轴（本地）：{9}，
-回转轴（本地）：{10}，
-回转轴（单机）：{11}", this.GnssInfo.Longitude, this.GnssInfo.Latitude, this.GnssInfo.Altitude, this.GnssInfo.LocalCoor_Ante.ToString("default"), this.GnssInfo.LocalCoor_Ante.ToString("prime"), this.GnssInfo.PitchAngle, this.GnssInfo.YawAngle, this.GnssInfo.WalkingPosition, this.GnssInfo.LocalCoor_Tip.ToString("prime"), this.GnssInfo.LocalCoor_PitchAxis.ToString("prime"), this.GnssInfo.LocalCoor_YawAxis.ToString("prime"), this.GnssInfo.LocalCoor_YawAxis.ToString("claimer"));
-            return output;
         }
 
         /// <summary>
@@ -791,7 +865,16 @@ namespace GetGpsToOpcAndDb
 
         private void Timer1_Tick(object sender, EventArgs e)
         {
-            this.SendData(string.Format("beidou-x:{0};y:{1};tip_height:{2}", Math.Round(this.GnssInfo.LocalCoor_Tip.XPrime, 4), Math.Round(this.GnssInfo.LocalCoor_Tip.YPrime, 4), Math.Round(this.GnssInfo.LocalCoor_Tip.Z, 4)));
+            this.UpdateBeidouInfo();
+            //this.GnssProtoInfo.LocalCoor_Tipx = this.GnssProtoInfo.LocalCoor_Tipy = 111.55;
+            //this.GnssProtoInfo.LocalCoor_Tipz = 44.99;
+            //this.GnssProtoInfo.WalkingPosition = 1049.124;
+            //this.GnssProtoInfo.PitchAngle = -1.42;
+            //this.GnssProtoInfo.YawAngle = -59.44;
+            //byte[] bytes = ProtobufNetWrapper.SerializeToBytes(this.GnssProtoInfo);
+            //GnssProtoInfo info = ProtobufNetWrapper.DeserializeFromBytes<GnssProtoInfo>(bytes);
+            byte[] array = ProtobufNetWrapper.SerializeToBytes(this.GnssProtoInfo, (int)ProtoInfoType.GNSS);
+            this.tcpServerMain.SendData(array);
         }
 
         /// <summary>
@@ -829,7 +912,7 @@ namespace GetGpsToOpcAndDb
             {
                 //Enter键，发送命令
                 case Keys.Enter:
-                    if (!string.IsNullOrWhiteSpace(this.textBox_Command.Text) && this.ysuTcpClient1.IsStart)
+                    if (!string.IsNullOrWhiteSpace(this.textBox_Command.Text) && this.tcpClient.IsStart)
                     {
                         this.SendDataEach(this.textBox_Command.Text);
                         this.textBox_Command.Text = string.Empty;

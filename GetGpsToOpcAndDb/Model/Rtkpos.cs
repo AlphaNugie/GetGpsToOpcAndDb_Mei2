@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CommonLib.Enums;
-using GetGpsToOpcAndDb.Core;
+using CommonLib.Extensions;
 
 namespace GetGpsToOpcAndDb.Model
 {

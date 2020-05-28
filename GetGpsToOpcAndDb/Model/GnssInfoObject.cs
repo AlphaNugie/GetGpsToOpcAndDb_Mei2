@@ -1,6 +1,6 @@
-﻿using CommonLib.Enums;
+﻿using CommonLib.Extensions;
 using GetGpsToOpcAndDb.Core;
-using Microsoft.SqlServer.Types;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +14,11 @@ namespace GetGpsToOpcAndDb.Model
     /// <summary>
     /// GNSS信息实体类
     /// </summary>
+    [ProtoContract]
     public class GnssInfoObject
     {
         #region 私有变量
-        private Random random = new Random();
+        private readonly Random random = new Random();
         private readonly Regex regex_type = new Regex(BaseConst.RegexPattern_MessageType, RegexOptions.Compiled); //提取消息类型的正则
         private readonly DataService_GnssInfo dataService = new DataService_GnssInfo();
         private double _latitude, _longitude, _altitude, _pitch_angle;
@@ -63,8 +64,15 @@ namespace GetGpsToOpcAndDb.Model
 
         #region 通用
         /// <summary>
+        /// 是否接收到数据
+        /// </summary>
+        [ProtoMember(7)]
+        public bool Working { get; set; }
+
+        /// <summary>
         /// 定位质量
         /// </summary>
+        [ProtoMember(9)]
         public string PositionQuality { get; set; }
 
         /// <summary>
@@ -151,26 +159,26 @@ namespace GetGpsToOpcAndDb.Model
         }
 
         /// <summary>
+        /// 行走位置
+        /// </summary>
+        [ProtoMember(4)]
+        public double WalkingPosition { get; set; }
+
+        /// <summary>
         /// 大臂俯仰角
         /// </summary>
+        [ProtoMember(5)]
         public double PitchAngle
         {
             get { return this._pitch_angle; }
-            set
-            {
-                this._pitch_angle = value;
-            }
+            set { this._pitch_angle = value; }
         }
 
         /// <summary>
         /// 回转角（到本地北的角度，单位度）
         /// </summary>
+        [ProtoMember(6)]
         public double YawAngle { get; set; }
-
-        /// <summary>
-        /// 行走位置
-        /// </summary>
-        public double WalkingPosition { get; set; }
         #endregion
 
         #region 本地坐标
@@ -397,10 +405,11 @@ namespace GetGpsToOpcAndDb.Model
         /// 将一个坐标的经纬度转换为本地坐标，指定定位天线距俯仰轴的距离与大臂俯仰角
         /// </summary>
         /// <param name="dist_pitch">定位天线距俯仰轴的实际距离（米）</param>
-        /// <param name="dist_tip_pitch">大臂顶端距俯仰轴的实际距离（米）</param>
-        /// <param name="dist_pitch_yaw">俯仰轴到回转轴的距离（米）</param>
         /// <param name="pitch_rad">根据定位天线得到的大臂俯仰角（弧度）</param>
         /// <param name="yaw_rad">大臂回转角（弧度）</param>
+        /// <param name="dist_pitch_yaw">俯仰轴到回转轴的距离（米）</param>
+        /// <param name="dist_tip_pitch">大臂顶端距俯仰轴的实际距离（米）</param>
+        /// <param name="pitch_tip_rad">大臂俯仰角</param>
         public void GetLocalCoordinates(double dist_pitch, double pitch_rad, double yaw_rad, double dist_pitch_yaw, double dist_tip_pitch, double pitch_tip_rad)
         {
             double lat = this.Latitude, lon = this.Longitude, alt = this.Altitude;
@@ -480,7 +489,6 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public void WriteOpcValue()
         {
-            //this.DictErrorMessages["OPC"] = string.Empty;
             new Thread(new ThreadStart(() =>
             {
                 if (!BaseConst.OpcHelper.OpcConnected)
@@ -601,6 +609,7 @@ namespace GetGpsToOpcAndDb.Model
     /// <summary>
     /// GPS质量指示
     /// </summary>
+    [Flags]
     public enum GpsQuality
     {
         /// <summary>

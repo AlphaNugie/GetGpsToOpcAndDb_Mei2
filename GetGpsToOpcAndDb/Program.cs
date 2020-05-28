@@ -1,7 +1,5 @@
-﻿using CommonLib.Function;
-using GetGpsToOpcAndDb.Core;
+﻿using GetGpsToOpcAndDb.Core;
 using GetGpsToOpcAndDb.Model;
-using Microsoft.SqlServer.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,8 +15,14 @@ namespace GetGpsToOpcAndDb
         [STAThread]
         static void Main()
         {
+            SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
             BaseFunc.InitConfigs();
             #region test
+            //double x = 0, y = 0, z = -1.3965;
+            //BaseFunc.GetCoordinates(38.966372, 118.453625, ref x, ref y);
+            //Coordinate coor = new Coordinate();
+            //coor.Update(x, y, z);
+            //string result = coor.ToString("prime");
             //double t = Math.Atan(1)*180/Math.PI;
             //double lat = 38.305164, lon = 117.862279, alt = 0;
             //Coordinate local_ante = new Coordinate(), local_center = new Coordinate();
@@ -54,6 +58,7 @@ namespace GetGpsToOpcAndDb
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            BaseConst.Log.WriteLogsToFile("进入程序入口点，开始初始化主窗体");
             Application.Run(new FormMain());
         }
     }

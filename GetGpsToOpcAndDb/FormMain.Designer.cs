@@ -90,8 +90,8 @@
             this.textBox_LongitudeValue = new System.Windows.Forms.TextBox();
             this.gpsallstr_txt = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.ysuTcpClient1 = new YsuSoftHelper.TCP.ysuTcpClient(this.components);
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.label_ReconnCounter = new System.Windows.Forms.Label();
             this.checkBox_AutoCollect = new System.Windows.Forms.CheckBox();
             this.LblTcpState = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
@@ -109,10 +109,13 @@
             this.statusLabel_DataService = new System.Windows.Forms.ToolStripStatusLabel();
             this.timer_Reconn = new System.Windows.Forms.Timer(this.components);
             this.timer_OpcUpdate = new System.Windows.Forms.Timer(this.components);
-            this.tcpServerMain = new SocketHelper.SocketTcpServer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.button_Expand = new System.Windows.Forms.Button();
             this.textBox_Info = new System.Windows.Forms.TextBox();
+            this.button_CopyToClipboard = new System.Windows.Forms.Button();
+            this.label_Copied = new System.Windows.Forms.Label();
+            this.tcpServerMain = new SocketHelper.SocketTcpServer(this.components);
+            this.tcpClient = new SocketHelper.SocketTcpClient(this.components);
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -240,7 +243,7 @@
             this.statusStrip1.Location = new System.Drawing.Point(0, 672);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 21, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(1011, 26);
+            this.statusStrip1.Size = new System.Drawing.Size(1448, 26);
             this.statusStrip1.TabIndex = 15;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -476,7 +479,7 @@
             this.textBox_AltitudeItemId.Name = "textBox_AltitudeItemId";
             this.textBox_AltitudeItemId.Size = new System.Drawing.Size(368, 27);
             this.textBox_AltitudeItemId.TabIndex = 3;
-            this.textBox_AltitudeItemId.TextChanged += new System.EventHandler(this.textBox_AltitudeItemId_TextChanged);
+            this.textBox_AltitudeItemId.TextChanged += new System.EventHandler(this.TextBox_AltitudeItemId_TextChanged);
             // 
             // label_OpcError
             // 
@@ -744,18 +747,9 @@
             this.label5.TabIndex = 0;
             this.label5.Text = "原始报文";
             // 
-            // ysuTcpClient1
-            // 
-            this.ysuTcpClient1.IsReconnection = true;
-            this.ysuTcpClient1.IsStart = false;
-            this.ysuTcpClient1.ReConnectionTime = 3000;
-            this.ysuTcpClient1.ServerIp = "127.0.0.1";
-            this.ysuTcpClient1.ServerPort = 5000;
-            this.ysuTcpClient1.OnRecevice += new System.EventHandler<YsuSoftHelper.ICommond.TcpClientReceviceEventArgs>(this.TcpClient1_OnReceive);
-            this.ysuTcpClient1.OnStateInfo += new System.EventHandler<YsuSoftHelper.ICommond.TcpClientStateEventArgs>(this.TcpClient1_OnStateInfo);
-            // 
             // groupBox6
             // 
+            this.groupBox6.Controls.Add(this.label_ReconnCounter);
             this.groupBox6.Controls.Add(this.checkBox_AutoCollect);
             this.groupBox6.Controls.Add(this.LblTcpState);
             this.groupBox6.Controls.Add(this.label16);
@@ -774,6 +768,15 @@
             this.groupBox6.TabIndex = 37;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "连接GPS设备";
+            // 
+            // label_ReconnCounter
+            // 
+            this.label_ReconnCounter.AutoSize = true;
+            this.label_ReconnCounter.Location = new System.Drawing.Point(313, 115);
+            this.label_ReconnCounter.Name = "label_ReconnCounter";
+            this.label_ReconnCounter.Size = new System.Drawing.Size(51, 20);
+            this.label_ReconnCounter.TabIndex = 18;
+            this.label_ReconnCounter.Text = "recon";
             // 
             // checkBox_AutoCollect
             // 
@@ -890,7 +893,7 @@
             this.statusStrip_WebService.Location = new System.Drawing.Point(0, 646);
             this.statusStrip_WebService.Name = "statusStrip_WebService";
             this.statusStrip_WebService.Padding = new System.Windows.Forms.Padding(1, 0, 21, 0);
-            this.statusStrip_WebService.Size = new System.Drawing.Size(1011, 26);
+            this.statusStrip_WebService.Size = new System.Drawing.Size(1448, 26);
             this.statusStrip_WebService.TabIndex = 38;
             this.statusStrip_WebService.Text = "statusStrip2";
             // 
@@ -909,7 +912,7 @@
             this.statusStrip_DataService.Location = new System.Drawing.Point(0, 620);
             this.statusStrip_DataService.Name = "statusStrip_DataService";
             this.statusStrip_DataService.Padding = new System.Windows.Forms.Padding(1, 0, 21, 0);
-            this.statusStrip_DataService.Size = new System.Drawing.Size(1011, 26);
+            this.statusStrip_DataService.Size = new System.Drawing.Size(1448, 26);
             this.statusStrip_DataService.TabIndex = 39;
             this.statusStrip_DataService.Text = "statusStrip2";
             // 
@@ -930,20 +933,6 @@
             this.timer_OpcUpdate.Interval = 1000;
             this.timer_OpcUpdate.Tick += new System.EventHandler(this.Timer_OpcUpdate_Tick);
             // 
-            // tcpServerMain
-            // 
-            this.tcpServerMain.CheckTime = 1000;
-            this.tcpServerMain.HeartBeatCheck = null;
-            this.tcpServerMain.HeartBeatPacket = "X";
-            this.tcpServerMain.IsHeartCheck = true;
-            this.tcpServerMain.IsStartListening = false;
-            this.tcpServerMain.LocalEndPoint = null;
-            this.tcpServerMain.RemoteEndPoint = null;
-            this.tcpServerMain.ServerIp = "127.0.0.1";
-            this.tcpServerMain.ServerPort = 25002;
-            this.tcpServerMain.ServerSocket = null;
-            this.tcpServerMain.StartSockst = null;
-            // 
             // timer1
             // 
             this.timer1.Interval = 1000;
@@ -952,7 +941,7 @@
             // button_Expand
             // 
             this.button_Expand.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.button_Expand.Location = new System.Drawing.Point(993, 279);
+            this.button_Expand.Location = new System.Drawing.Point(1430, 279);
             this.button_Expand.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.button_Expand.Name = "button_Expand";
             this.button_Expand.Size = new System.Drawing.Size(18, 68);
@@ -971,11 +960,68 @@
             this.textBox_Info.TabIndex = 41;
             this.textBox_Info.Visible = false;
             // 
+            // button_CopyToClipboard
+            // 
+            this.button_CopyToClipboard.Font = new System.Drawing.Font("微软雅黑", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_CopyToClipboard.Location = new System.Drawing.Point(1342, 16);
+            this.button_CopyToClipboard.Name = "button_CopyToClipboard";
+            this.button_CopyToClipboard.Size = new System.Drawing.Size(83, 36);
+            this.button_CopyToClipboard.TabIndex = 42;
+            this.button_CopyToClipboard.Text = "复制";
+            this.button_CopyToClipboard.UseVisualStyleBackColor = true;
+            this.button_CopyToClipboard.Click += new System.EventHandler(this.Button_CopyToClipboard_Click);
+            // 
+            // label_Copied
+            // 
+            this.label_Copied.AutoSize = true;
+            this.label_Copied.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.label_Copied.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.label_Copied.Font = new System.Drawing.Font("黑体", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label_Copied.Location = new System.Drawing.Point(1338, 65);
+            this.label_Copied.Name = "label_Copied";
+            this.label_Copied.Size = new System.Drawing.Size(85, 24);
+            this.label_Copied.TabIndex = 43;
+            this.label_Copied.Text = "已复制";
+            this.label_Copied.Visible = false;
+            // 
+            // tcpServerMain
+            // 
+            this.tcpServerMain.CheckTime = 1000;
+            this.tcpServerMain.HeartBeatCheck = null;
+            this.tcpServerMain.HeartBeatPacket = "X";
+            this.tcpServerMain.IsHeartCheck = true;
+            this.tcpServerMain.IsStartListening = false;
+            this.tcpServerMain.LocalEndPoint = null;
+            this.tcpServerMain.RemoteEndPoint = null;
+            this.tcpServerMain.ServerIp = "127.0.0.1";
+            this.tcpServerMain.ServerPort = 25002;
+            this.tcpServerMain.ServerSocket = null;
+            this.tcpServerMain.StartSockst = null;
+            // 
+            // tcpClient
+            // 
+            this.tcpClient.BaseClient = null;
+            this.tcpClient.IsStart = false;
+            this.tcpClient.IsStartTcpThreading = false;
+            this.tcpClient.LocalEndPoint = null;
+            this.tcpClient.LocalIp = null;
+            this.tcpClient.RaiseInterval = ((uint)(5000u));
+            this.tcpClient.RaiseThreshold = ((ulong)(5000ul));
+            this.tcpClient.ReConnectedCount = 0;
+            this.tcpClient.ReconnectWhenReceiveNone = true;
+            this.tcpClient.RemoteEndPoint = null;
+            this.tcpClient.ServerPort = 25002;
+            this.tcpClient.TcpThread = null;
+            this.tcpClient.OnReceive += new SocketHelper.SocketTcpClient.ReceivedEventHandler(this.TcpClient_OnReceive);
+            this.tcpClient.OnStateInfo += new SocketHelper.SocketTcpClient.StateInfoEventHandler(this.TcpClient_OnStateInfo);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1011, 698);
+            this.ClientSize = new System.Drawing.Size(1448, 698);
+            this.Controls.Add(this.label_Copied);
+            this.Controls.Add(this.button_CopyToClipboard);
             this.Controls.Add(this.button_Expand);
             this.Controls.Add(this.textBox_Info);
             this.Controls.Add(this.statusStrip_DataService);
@@ -1021,7 +1067,6 @@
         }
 
         #endregion
-
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.MaskedTextBox textBox_RemoteServerIP;
         private System.Windows.Forms.ComboBox comboBox_RemoteServerName;
@@ -1055,7 +1100,6 @@
         private System.Windows.Forms.ToolStripStatusLabel statusLabel_ServerState;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel_ServerStartTime;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel_Version;
-        private YsuSoftHelper.TCP.ysuTcpClient ysuTcpClient1;
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.TextBox textBox_Port;
@@ -1105,6 +1149,10 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Button button_Expand;
         private System.Windows.Forms.TextBox textBox_Info;
+        private System.Windows.Forms.Button button_CopyToClipboard;
+        private System.Windows.Forms.Label label_Copied;
+        private SocketHelper.SocketTcpClient tcpClient;
+        private System.Windows.Forms.Label label_ReconnCounter;
     }
 }
 
