@@ -1,5 +1,6 @@
 ﻿using CarServer;
 using CommonLib.Clients;
+using CommonLib.Extensions.Property;
 using CommonLib.Function;
 using CommonLib.UIControlUtil;
 using GetGpsToOpcAndDb.Core;
@@ -15,7 +16,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using static CommonLib.Function.TimerEventRaiser;
+//using static CommonLib.Function.TimerEventRaiser;
 
 namespace GetGpsToOpcAndDb
 {
@@ -59,12 +60,23 @@ namespace GetGpsToOpcAndDb
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(this.UnhandledException_Raising); //未捕获异常触发事件
             this.GnssInfo = new GnssInfoObject() { ClaimerId = this.textBox_ClaimerId.Text };
             this.raiser.RaiseThreshold = 10000;
-            this.raiser.ThresholdReached += new ThresholdReachedEventHandler(this.Raiser_ThresholdReached);
+            this.raiser.ThresholdReached += new TimerEventRaiser.ThresholdReachedEventHandler(this.Raiser_ThresholdReached);
+            this.raiser.Clicked += new TimerEventRaiser.ClickedEventHandler(this.Raiser_Clicked);
             this.InitControls();
 
             //TODO 配置服务地址
             //利用WebService构造器的重载方法，在Config.ini文件中修改，重载方法的endpointConfigurationName参数：App.config文件中的system.ServiceModel=>client=>endpoint节点的name属性值
             BaseConst.Log.WriteLogsToFile("主窗体初始化完成");
+        }
+
+        /// <summary>
+        /// 接收到数据事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Raiser_Clicked(object sender, ClickedEventArgs e)
+        {
+            this.GnssInfo.Working = true;
         }
 
         /// <summary>
@@ -75,8 +87,6 @@ namespace GetGpsToOpcAndDb
         private void Raiser_ThresholdReached(object sender, ThresholdReachedEventArgs e)
         {
             this.GnssInfo.Working = false;
-            //this.TcpDisconnect();
-            //this.TcpConnect();
         }
 
         /// <summary>
@@ -199,15 +209,24 @@ namespace GetGpsToOpcAndDb
         /// </summary>
         private void UpdateBeidouInfo()
         {
-            this.GnssProtoInfo.LocalCoor_Tipx = this.GnssInfo.LocalCoor_Tip.XPrime;
-            this.GnssProtoInfo.LocalCoor_Tipy = this.GnssInfo.LocalCoor_Tip.YPrime;
-            this.GnssProtoInfo.LocalCoor_Tipz = this.GnssInfo.LocalCoor_Tip.Z;
-            this.GnssProtoInfo.WalkingPosition = this.GnssInfo.WalkingPosition;
-            this.GnssProtoInfo.PitchAngle = this.GnssInfo.PitchAngle;
-            this.GnssProtoInfo.YawAngle = this.GnssInfo.YawAngle;
-            this.GnssProtoInfo.Working = this.GnssInfo.Working;
+            //this.GnssProtoInfo.LocalCoor_Tipx = this.GnssInfo.LocalCoor_Tip.XPrime;
+            //this.GnssProtoInfo.LocalCoor_Tipy = this.GnssInfo.LocalCoor_Tip.YPrime;
+            //this.GnssProtoInfo.LocalCoor_Tipz = this.GnssInfo.LocalCoor_Tip.Z;
+            //this.GnssProtoInfo.WalkingPosition = this.GnssInfo.WalkingPosition;
+            //this.GnssProtoInfo.PitchAngle = this.GnssInfo.PitchAngle;
+            //this.GnssProtoInfo.YawAngle = this.GnssInfo.YawAngle;
+            //this.GnssProtoInfo.Working = this.GnssInfo.Working;
+            //this.GnssProtoInfo.PositionQuality = this.GnssInfo.PositionQuality;
+            //this.GnssInfo.LocalCoor_Tip.X = 123.22;
+            //this.GnssInfo.LocalCoor_Tip.Y = 321.11;
+            //this.GnssInfo.LocalCoor_Tip.Z = 33.4;
+            //this.GnssInfo.WalkingPosition = 1214.32;
+            //this.GnssInfo.PitchAngle = -4.15;
+            //this.GnssInfo.YawAngle = -62.15;
+            //this.GnssInfo.Working = true;
+            //this.GnssInfo.PositionQuality = "Good";
+            this.GnssProtoInfo.CopyPropertyValueFrom(this.GnssInfo);
             this.GnssProtoInfo.IsFixed = this.GnssInfo.Quality == GpsQuality.RTKFixed || this.GnssInfo.PositionType == PositionVelocityType.NARROW_INT;
-            this.GnssProtoInfo.PositionQuality = this.GnssInfo.PositionQuality;
         }
 
         #region OPC方法
