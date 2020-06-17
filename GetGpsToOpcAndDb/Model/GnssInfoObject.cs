@@ -125,7 +125,7 @@ namespace GetGpsToOpcAndDb.Model
             {
                 double temp = value + BaseConst.HeadingOffset; //航向角加校正
                 this.trackdir_truenorth = Math.Round(temp > 180 ? temp - 360 : temp, 4); //大于180则减360
-                this.YawAngle = this.trackdir_truenorth + BaseConst.LocalNorthingRotated;
+                this.YawAngle = Math.Round(this.trackdir_truenorth + BaseConst.LocalNorthingRotated - BaseConst.YawAngleRadian_AnteRedun * 180 / Math.PI + BaseConst.YawOffset, 3);
             }
         }
 
@@ -153,7 +153,7 @@ namespace GetGpsToOpcAndDb.Model
                 {
                     BaseConst.PitchAngleAnteRadian = Math.Asin((this._altitude - BaseConst.HeightZero) / BaseConst.Dist2PitchAxis_Real);
                     BaseConst.PitchAngleTipRadian = BaseConst.PitchAngleAnteRadian - BaseConst.PitchAngleRadian_AnteRedun + BaseConst.PitchAngleRadian_TipRedun;
-                    this.PitchAngle = Math.Round((BaseConst.PitchAngleAnteRadian - BaseConst.PitchAngleRadian_AnteRedun) * 180 / Math.PI, 2);
+                    this.PitchAngle = Math.Round((BaseConst.PitchAngleAnteRadian - BaseConst.PitchAngleRadian_AnteRedun) * 180 / Math.PI, 3) + BaseConst.PitchOffset;
                 }
             }
         }
@@ -183,9 +183,11 @@ namespace GetGpsToOpcAndDb.Model
 
         #region 本地坐标
         private Coordinate local_coor_ante = new Coordinate();
+        private Coordinate local_coor_sym = new Coordinate();
         private Coordinate local_coor_pitch = new Coordinate();
         private Coordinate local_coor_yaw = new Coordinate();
         private Coordinate local_coor_tip = new Coordinate();
+
         /// <summary>
         /// 定位天线本地坐标，转换后XYZ分别指向东、北、上，不转换分别为经度、纬度、海拔
         /// </summary>
@@ -193,6 +195,15 @@ namespace GetGpsToOpcAndDb.Model
         {
             get { return this.local_coor_ante; }
             set { this.local_coor_ante = value; }
+        }
+
+        /// <summary>
+        /// 定位天线本地坐标在大臂对称轴的投影，转换后XYZ分别指向东、北、上，不转换分别为经度、纬度、海拔
+        /// </summary>
+        public Coordinate LocalCoor_SymAxis
+        {
+            get { return this.local_coor_sym; }
+            set { this.local_coor_sym = value; }
         }
 
         /// <summary>
@@ -398,31 +409,36 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public void GetLocalCoordinates()
         {
-            GetLocalCoordinates(BaseConst.Dist2PitchAxis_Real, BaseConst.PitchAngleAnteRadian, this.YawAngle * Math.PI / 180, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real, BaseConst.PitchAngleTipRadian);
+            //GetLocalCoordinates(BaseConst.PitchAngleAnteRadian, this.YawAngle * Math.PI / 180, BaseConst.AnteDist2SymAxis, BaseConst.Dist2PitchAxis_Real, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real, BaseConst.PitchAngleTipRadian);
+            GetLocalCoordinates(this.PitchAngle * Math.PI / 180 + BaseConst.PitchAngleRadian_AnteRedun, this.YawAngle * Math.PI / 180, BaseConst.AnteDist2SymAxis, BaseConst.Dist2PitchAxis_Real, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real, BaseConst.PitchAngleTipRadian);
         }
 
         /// <summary>
         /// 将一个坐标的经纬度转换为本地坐标，指定定位天线距俯仰轴的距离与大臂俯仰角
         /// </summary>
-        /// <param name="dist_pitch">定位天线距俯仰轴的实际距离（米）</param>
         /// <param name="pitch_rad">根据定位天线得到的大臂俯仰角（弧度）</param>
         /// <param name="yaw_rad">大臂回转角（弧度）</param>
+        /// <param name="dist_sym">定位天线距大臂中央的偏移量（米）</param>
+        /// <param name="dist_pitch">定位天线距俯仰轴的实际距离（米）</param>
         /// <param name="dist_pitch_yaw">俯仰轴到回转轴的距离（米）</param>
         /// <param name="dist_tip_pitch">大臂顶端距俯仰轴的实际距离（米）</param>
         /// <param name="pitch_tip_rad">大臂俯仰角</param>
-        public void GetLocalCoordinates(double dist_pitch, double pitch_rad, double yaw_rad, double dist_pitch_yaw, double dist_tip_pitch, double pitch_tip_rad)
+        public void GetLocalCoordinates(double pitch_rad, double yaw_rad, double dist_sym, double dist_pitch, double dist_pitch_yaw, double dist_tip_pitch, double pitch_tip_rad)
         {
             double lat = this.Latitude, lon = this.Longitude, alt = this.Altitude;
-            double x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4; //分别为定位天线坐标，俯仰轴坐标，回转轴坐标，臂架顶点坐标
+            double x0, x1, x2, x3, x4, y0, y1, y2, y3, y4, z0, z1, z2, z3, z4; //分别为定位天线坐标，大臂对称轴投影坐标，俯仰轴坐标，回转轴坐标，臂架顶点坐标
             //double xc = 0, yc = 0; //回转轴在单机轨道坐标系下的坐标
-            x1 = x2 = x3 = x4 = lon;
-            y1 = y2 = y3 = y4 = lat;
-            z1 = z2 = z3 = z4 = alt;
+            x0 = x1 = x2 = x3 = x4 = lon;
+            y0 = y1 = y2 = y3 = y4 = lat;
+            z0 = z1 = z2 = z3 = z4 = alt;
             if (!BaseConst.ConvertEnabled)
                 goto Ending;
 
-            BaseFunc.GetCoordinates(lat, lon, ref x1, ref y1);
+            BaseFunc.GetCoordinates(lat, lon, ref x0, ref y0); //定位天线本地坐标
             double cospitch = Math.Cos(pitch_rad), sinpitch = Math.Sin(pitch_rad), cosyaw = Math.Cos(yaw_rad), sinyaw = Math.Sin(yaw_rad);
+            //定位天线在大臂对称轴上的投影坐标
+            x1 = x0 - dist_sym * cosyaw;
+            y1 = y0 + dist_sym * sinyaw;
             //俯仰轴本地坐标
             x2 = x1 - dist_pitch * cospitch * sinyaw;
             y2 = y1 - dist_pitch * cospitch * cosyaw;
@@ -438,11 +454,12 @@ namespace GetGpsToOpcAndDb.Model
             y4 = y2 + dist_tip_pitch * Math.Cos(pitch_tip_rad) * cosyaw;
             z4 = z2 + dist_tip_pitch * Math.Sin(pitch_tip_rad);
         Ending:
-            this.LocalCoor_Ante.Update(x1, y1, z1);
+            this.LocalCoor_Ante.Update(x0, y0, z0);
+            this.LocalCoor_SymAxis.Update(x1, y1, z1);
             this.LocalCoor_PitchAxis.Update(x2, y2, z2);
             this.LocalCoor_YawAxis.Update(x3, y3, z3);
             this.LocalCoor_Tip.Update(x4, y4, z4);
-            this.WalkingPosition = BaseConst.WalkingNorth == BaseConst.AxisSwapped ? this.LocalCoor_YawAxis.XClaimer : this.LocalCoor_YawAxis.YClaimer;
+            this.WalkingPosition = (BaseConst.WalkingNorth == BaseConst.AxisSwapped ? this.LocalCoor_YawAxis.XClaimer : this.LocalCoor_YawAxis.YClaimer) + BaseConst.WalkingOffset;
         }
         #endregion
 

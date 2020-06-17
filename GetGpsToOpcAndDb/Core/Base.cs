@@ -182,6 +182,21 @@ namespace GetGpsToOpcAndDb.Core
         /// </summary>
         public static double HeadingOffset { get; set; }
 
+        /// <summary>
+        /// 行走位置校正值（米）
+        /// </summary>
+        public static double WalkingOffset { get; set; }
+
+        /// <summary>
+        /// 俯仰角校正值（°）
+        /// </summary>
+        public static double PitchOffset { get; set; }
+
+        /// <summary>
+        /// 回转角校正值（°）
+        /// </summary>
+        public static double YawOffset { get; set; }
+
         private static double height_zero_ante = 0;
         /// <summary>
         /// 大臂平放时接收机的海拔高度（米）
@@ -212,6 +227,20 @@ namespace GetGpsToOpcAndDb.Core
             }
         }
 
+        private static double ante_dist_sym = 0;
+        /// <summary>
+        /// 定位天线距离大臂对称轴偏移的距离（右侧为正）
+        /// </summary>
+        public static double AnteDist2SymAxis
+        {
+            get { return ante_dist_sym; }
+            set
+            {
+                ante_dist_sym = value;
+                YawAngleRadian_AnteRedun = Math.Atan(ante_dist_sym / (dist_pitch_axis + dist_pitch_yaw_axis));
+            }
+        }
+
         /// <summary>
         /// 俯仰轴海拔高度（用大臂平放时天线海拔高度与天线被抬起高度作差）
         /// </summary>
@@ -228,6 +257,7 @@ namespace GetGpsToOpcAndDb.Core
             {
                 dist_pitch_axis = value;
                 PitchAngleRadian_AnteRedun = Math.Atan(ante_raised_height / dist_pitch_axis);
+                YawAngleRadian_AnteRedun = Math.Atan(ante_dist_sym / (dist_pitch_axis + dist_pitch_yaw_axis));
                 Dist2PitchAxis_Real = Math.Sqrt(Math.Pow(ante_raised_height, 2) + Math.Pow(dist_pitch_axis, 2));
             }
         }
@@ -237,10 +267,19 @@ namespace GetGpsToOpcAndDb.Core
         /// </summary>
         public static double Dist2PitchAxis_Real { get; private set; }
 
+        private static double dist_pitch_yaw_axis = 0;
         /// <summary>
         /// 俯仰轴到回转轴的距离（米）
         /// </summary>
-        public static double DistPitch2YawAxis { get; set; }
+        public static double DistPitch2YawAxis
+        {
+            get { return dist_pitch_yaw_axis; }
+            set
+            {
+                dist_pitch_yaw_axis = value;
+                YawAngleRadian_AnteRedun = Math.Atan(ante_dist_sym / (dist_pitch_axis + dist_pitch_yaw_axis));
+            }
+        }
 
         private static double dist_tip_pitch_h = 0;
         /// <summary>
@@ -278,20 +317,19 @@ namespace GetGpsToOpcAndDb.Core
         public static double DistTip2PitchAxis_Real { get; private set; }
 
         /// <summary>
-        /// 定位天线在垂直大臂方向距对称轴的距离
-        /// </summary>
-        public static double Dist2SymAxis { get; set; }
-
-        /// <summary>
         /// 是否沿本地南北行走（为否则沿本地东西行走）
         /// </summary>
         public static bool WalkingNorth = true;
 
-        //private static double pitch_angler_redun = 0;
         /// <summary>
         /// 大臂俯仰角（弧度）的定位天线高度冗余部分
         /// </summary>
         public static double PitchAngleRadian_AnteRedun { get; private set; }
+
+        /// <summary>
+        /// 大臂回转角（弧度）的定位天线距大臂对称轴偏移量冗余部分（向右侧偏移为正）
+        /// </summary>
+        public static double YawAngleRadian_AnteRedun { get; private set; }
 
         /// <summary>
         /// 根据定位天线得到的大臂俯仰角（弧度，定位天线、俯仰轴所在直线与地平面的夹角）
@@ -344,13 +382,16 @@ namespace GetGpsToOpcAndDb.Core
                     BaseConst.AxisRatios = BaseConst.IniHelper.ReadData("Conversion", "AxisValueExp").Split(',', 'm').Select(p => double.Parse(p.Equals("-") || p.Equals(string.Empty) ? p + "1" : p)).ToArray();
                     BaseConst.AxisSwapped = BaseConst.IniHelper.ReadData("Conversion", "AxisSwapped").Equals("1");
                     BaseConst.HeadingOffset = double.Parse(BaseConst.IniHelper.ReadData("Posture", "HeadingOffset"));
+                    BaseConst.WalkingOffset = double.Parse(BaseConst.IniHelper.ReadData("Posture", "WalkingOffset"));
+                    BaseConst.PitchOffset = double.Parse(BaseConst.IniHelper.ReadData("Posture", "PitchOffset"));
+                    BaseConst.YawOffset = double.Parse(BaseConst.IniHelper.ReadData("Posture", "YawOffset"));
                     BaseConst.HeightZero_Ante = double.Parse(BaseConst.IniHelper.ReadData("Posture", "HeightZero_Ante"));
                     BaseConst.AnteRaisedHeight = double.Parse(BaseConst.IniHelper.ReadData("Posture", "AnteRaisedHeight"));
                     BaseConst.Dist2PitchAxis = double.Parse(BaseConst.IniHelper.ReadData("Posture", "Dist2PitchAxis"));
                     BaseConst.DistPitch2YawAxis = double.Parse(BaseConst.IniHelper.ReadData("Posture", "DistPitch2YawAxis"));
                     BaseConst.DistTip2PitchAxisHor = double.Parse(BaseConst.IniHelper.ReadData("Posture", "DistTip2PitchAxisHor"));
                     BaseConst.DistTip2PitchAxisVer = double.Parse(BaseConst.IniHelper.ReadData("Posture", "DistTip2PitchAxisVer"));
-                    BaseConst.Dist2SymAxis = double.Parse(BaseConst.IniHelper.ReadData("Posture", "Dist2SymAxis"));
+                    BaseConst.AnteDist2SymAxis = double.Parse(BaseConst.IniHelper.ReadData("Posture", "Dist2SymAxis"));
                     BaseConst.WalkingNorth = BaseConst.IniHelper.ReadData("Posture", "WalkingNorth").Equals("1");
 
                     GetCoordinates(BaseConst.TrackPosition.Latitude, BaseConst.TrackPosition.Longitude, ref x, ref y);
