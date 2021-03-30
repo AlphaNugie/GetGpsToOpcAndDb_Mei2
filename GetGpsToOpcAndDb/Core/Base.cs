@@ -49,6 +49,11 @@ namespace GetGpsToOpcAndDb.Core
         public static readonly IniFileHelper IniHelper = new IniFileHelper("Config.ini");
 
         /// <summary>
+        /// 定位定向消息(bestposa/gpgga/gphdt)发送时间间隔，可接受的值为0.05/0.1/0.2/0.5/任意正整数，假如不在这些值的范围内，则自动向下匹配（最低匹配到0.05）
+        /// </summary>
+        public static double ReceiveInterval { get; set; }
+
+        /// <summary>
         /// WebService的IP地址
         /// </summary>
         public static readonly string ServiceIp = IniHelper.ReadData("WebService", "ServiceIp");
@@ -362,6 +367,26 @@ namespace GetGpsToOpcAndDb.Core
         }
 
         /// <summary>
+        /// 根据输入数值匹配定位消息发送时间间隔，可接受的值为0.05/0.1/0.2/0.5/任意正整数，假如不在这些值的范围内，则自动向下匹配（最低匹配到0.05）
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static double GetMatchedReceiveInterval(double input)
+        {
+            if (input >= 1)
+                input = Math.Floor(input);
+            else if (input >= 0.5)
+                input = 0.5;
+            else if (input >= 0.2)
+                input = 0.2;
+            else if (input >= 0.1)
+                input = 0.1;
+            else
+                input = 0.05;
+            return input;
+        }
+
+        /// <summary>
         /// 持续刷新基础配置
         /// </summary>
         public static void RefreshConfigs()
@@ -372,6 +397,7 @@ namespace GetGpsToOpcAndDb.Core
             {
                 try
                 {
+                    BaseConst.ReceiveInterval = GetMatchedReceiveInterval(double.Parse(BaseConst.IniHelper.ReadData("Main", "ReceiveInterval")));
                     BaseConst.OpcUpdateRatio = int.Parse(BaseConst.IniHelper.ReadData("Opc", "OpcUpdateRatio"));
                     //转换
                     BaseConst.ConvertEnabled = BaseConst.IniHelper.ReadData("Conversion", "ConvertEnabled").Equals("1");

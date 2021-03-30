@@ -209,22 +209,6 @@ namespace GetGpsToOpcAndDb
         /// </summary>
         private void UpdateBeidouInfo()
         {
-            //this.GnssProtoInfo.LocalCoor_Tipx = this.GnssInfo.LocalCoor_Tip.XPrime;
-            //this.GnssProtoInfo.LocalCoor_Tipy = this.GnssInfo.LocalCoor_Tip.YPrime;
-            //this.GnssProtoInfo.LocalCoor_Tipz = this.GnssInfo.LocalCoor_Tip.Z;
-            //this.GnssProtoInfo.WalkingPosition = this.GnssInfo.WalkingPosition;
-            //this.GnssProtoInfo.PitchAngle = this.GnssInfo.PitchAngle;
-            //this.GnssProtoInfo.YawAngle = this.GnssInfo.YawAngle;
-            //this.GnssProtoInfo.Working = this.GnssInfo.Working;
-            //this.GnssProtoInfo.PositionQuality = this.GnssInfo.PositionQuality;
-            //this.GnssInfo.LocalCoor_Tip.X = 123.22;
-            //this.GnssInfo.LocalCoor_Tip.Y = 321.11;
-            //this.GnssInfo.LocalCoor_Tip.Z = 33.4;
-            //this.GnssInfo.WalkingPosition = 1214.32;
-            //this.GnssInfo.PitchAngle = -4.15;
-            //this.GnssInfo.YawAngle = -62.15;
-            //this.GnssInfo.Working = true;
-            //this.GnssInfo.PositionQuality = "Good";
             this.GnssProtoInfo.CopyPropertyValueFrom(this.GnssInfo);
             this.GnssProtoInfo.IsFixed = this.GnssInfo.Quality == GpsQuality.RTKFixed || this.GnssInfo.PositionType == PositionVelocityType.NARROW_INT;
         }
@@ -398,7 +382,8 @@ namespace GetGpsToOpcAndDb
         {
             List<string> list = new List<string>() { "unlog" };
             if (flag)
-                list.AddRange(new string[] { "log bestposa ontime 1", "log gphdt ontime 1" });
+                //list.AddRange(new string[] { "log bestposa ontime 1", "log gphdt ontime 1" });
+                list.AddRange(new string[] { "log bestposa ontime " + BaseConst.ReceiveInterval, "log gphdt ontime " + BaseConst.ReceiveInterval });
             this.SendData(list);
         }
 
@@ -473,7 +458,7 @@ namespace GetGpsToOpcAndDb
             string command_after = command + "\r\n\r\n";
             this.tcpClient.SendData(Encoding.Default.GetBytes(command_after));
             //this.lastCommand = command;
-            this.commandStorage.PushCommand(command);
+            this.commandStorage.Push(command);
         }
         #endregion
 
@@ -907,10 +892,10 @@ namespace GetGpsToOpcAndDb
             {
                 //向上键，找到上一个发送的命令
                 case Keys.Up:
-                    this.textBox_Command.Text = this.commandStorage.LastCommand();
+                    this.textBox_Command.Text = this.commandStorage.Last();
                     break;
                 case Keys.Down:
-                    this.textBox_Command.Text = this.commandStorage.NextCommand();
+                    this.textBox_Command.Text = this.commandStorage.Next();
                     break;
                 default:
                     return;

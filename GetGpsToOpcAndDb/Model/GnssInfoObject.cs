@@ -174,11 +174,25 @@ namespace GetGpsToOpcAndDb.Model
             set { this._pitch_angle = value; }
         }
 
+        ///// <summary>
+        ///// 回转角（到本地北的角度，单位度）
+        ///// </summary>
+        //public double YawAngle { get; set; }
+
+        private double _yaw_angle = 0;
         /// <summary>
         /// 回转角（到本地北的角度，单位度）
         /// </summary>
         [ProtoMember(6)]
-        public double YawAngle { get; set; }
+        public double YawAngle
+        {
+            get { return _yaw_angle; }
+            set
+            {
+                value = Math.Abs(value) < 180 ? value : value - 360 * Math.Sign(value);
+                _yaw_angle = value;
+            }
+        }
         #endregion
 
         #region 本地坐标
@@ -494,7 +508,7 @@ namespace GetGpsToOpcAndDb.Model
                 catch (Exception e)
                 {
                     //message = string.Format("为ID为{0}的大机调用Web服务时出错：{1}", this.ClaimerId, e.Message);
-                    message = string.Format("为ID为{0}的大机调用Web服务时出错", this.ClaimerId);
+                    message = string.Format("为ID为{0}的大机调用Web服务时出错: {1}", this.ClaimerId, e.Message);
                 }
                 this.DictErrorMessages["WebService"] = string.Format("{0} [{1:yyyy-MM-dd HH:mm:ss}]", message, DateTime.Now);
             }))
@@ -557,7 +571,7 @@ namespace GetGpsToOpcAndDb.Model
                 catch (Exception e)
                 {
                     //this.DictErrorMessages["DataService"] = string.Format("ID为{0}的大机信息更新出错：{1}", this.ClaimerId, e.Message);
-                    message = string.Format("ID为{0}的大机信息更新出错", this.ClaimerId);
+                    message = string.Format("ID为{0}的大机信息更新出错: {1}", this.ClaimerId, e.Message);
                 }
                 this.DictErrorMessages["DataService"] = string.IsNullOrWhiteSpace(message) ? string.Empty : string.Format("{0} [{1:yyyy-MM-dd HH:mm:ss}]", message, DateTime.Now);
             }))

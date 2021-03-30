@@ -18,6 +18,10 @@ namespace GetGpsToOpcAndDb
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
             BaseFunc.InitConfigs();
             #region test
+            //double test = Math.Atan(0.0615568);
+            //test = test * 180 / Math.PI;
+            //return;
+
             //double x = 0, y = 0, z = -1.3965;
             //BaseFunc.GetCoordinates(38.966372, 118.453625, ref x, ref y);
             //Coordinate coor = new Coordinate();
