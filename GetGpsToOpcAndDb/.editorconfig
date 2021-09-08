@@ -1,0 +1,10 @@
+﻿[*.cs]
+
+# IDE0018: 内联变量声明
+csharp_style_inlined_variable_declaration = true:none
+
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = none
+
+# CA1027: Mark enums with FlagsAttribute
+dotnet_diagnostic.CA1027.severity = none

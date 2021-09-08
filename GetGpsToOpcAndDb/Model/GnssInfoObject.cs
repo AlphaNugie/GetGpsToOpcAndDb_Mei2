@@ -1,4 +1,5 @@
 ﻿using CommonLib.Extensions;
+using CommonLib.Function;
 using GetGpsToOpcAndDb.Core;
 using ProtoBuf;
 using System;
@@ -14,18 +15,22 @@ namespace GetGpsToOpcAndDb.Model
     /// <summary>
     /// GNSS信息实体类
     /// </summary>
-    [ProtoContract]
     public class GnssInfoObject
     {
         #region 私有变量
-        private readonly Random random = new Random();
-        private readonly Regex regex_type = new Regex(BaseConst.RegexPattern_MessageType, RegexOptions.Compiled); //提取消息类型的正则
-        private readonly DataService_GnssInfo dataService = new DataService_GnssInfo();
+        private readonly Regex _regex = new Regex(BaseConst.RegexPattern_MessageType, RegexOptions.Compiled); //提取消息类型的正则
+        private readonly DataService_GnssInfo _dataService = new DataService_GnssInfo();
         private double _latitude, _longitude, _altitude, _pitch_angle;
+        private readonly TimerEventRaiser _raiser = new TimerEventRaiser(1000);
         #endregion
 
         #region 属性
         #region 基础属性
+        /// <summary>
+        /// 计时触发器
+        /// </summary>
+        public TimerEventRaiser Raiser { get { return _raiser; } }
+
         /// <summary>
         /// 错误信息键值对：GNSS/WebService/OPC/DataService
         /// </summary>
@@ -60,19 +65,27 @@ namespace GetGpsToOpcAndDb.Model
         /// 包含以度为单位相对真北方向的航向信息
         /// </summary>
         public Gphdt GPHDT { get; set; }
+
+        /// <summary>
+        /// 航向是移动基站（MOVINGBASE）至定向接收机（HEADING）间基线向量顺时针方向与真北的夹角
+        /// </summary>
+        public Heading HEADING { get; set; }
         #endregion
 
         #region 通用
         /// <summary>
         /// 是否接收到数据
         /// </summary>
-        [ProtoMember(7)]
         public bool Working { get; set; }
 
         /// <summary>
-        /// 定位质量
+        /// 是否为固定解
         /// </summary>
-        [ProtoMember(9)]
+        public bool IsFixedSolution { get { return Quality == GpsQuality.RTKFixed || PositionType == PositionVelocityType.NARROW_INT; } }
+
+        /// <summary>
+        /// 定位质量（字符串描述）
+        /// </summary>
         public string PositionQuality { get; set; }
 
         /// <summary>
@@ -85,11 +98,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public double Latitude
         {
-            get { return this._latitude; }
-            set
-            {
-                this._latitude = Math.Round(value, 8);
-            }
+            get { return _latitude; }
+            set { _latitude = Math.Round(value, 8); }
         }
 
         /// <summary>
@@ -102,11 +112,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public double Longitude
         {
-            get { return this._longitude; }
-            set
-            {
-                this._longitude = Math.Round(value, 8);
-            }
+            get { return _longitude; }
+            set { _longitude = Math.Round(value, 8); }
         }
 
         /// <summary>
@@ -120,40 +127,37 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public double TrackDirection_TrueNorth
         {
-            get { return this.trackdir_truenorth; }
+            get { return trackdir_truenorth; }
             set
             {
                 double temp = value + BaseConst.HeadingOffset; //航向角加校正
-                this.trackdir_truenorth = Math.Round(temp > 180 ? temp - 360 : temp, 4); //大于180则减360
-                this.YawAngle = Math.Round(this.trackdir_truenorth + BaseConst.LocalNorthingRotated - BaseConst.YawAngleRadian_AnteRedun * 180 / Math.PI + BaseConst.YawOffset, 3);
+                trackdir_truenorth = Math.Round(temp > 180 ? temp - 360 : temp, 4); //大于180则减360
+                YawAngle = Math.Round(trackdir_truenorth + BaseConst.LocalNorthingRotated - BaseConst.YawAngleRadian_AnteRedun * 180 / Math.PI + BaseConst.YawOffset, 3);
             }
         }
 
         /// <summary>
-        /// 位置信息解出类型
+        /// 是否收到真北航向角
         /// </summary>
-        public SolutionStatus SolutionStatus { get; set; }
-
-        /// <summary>
-        /// 位置或速度类型
-        /// </summary>
-        public PositionVelocityType PositionType { get; set; }
+        public bool TrackDirection_Received { get; set; }
 
         /// <summary>
         /// 天线高度，高于/低于平均海平面，单位：米
         /// </summary>
         public double Altitude
         {
-            get { return this._altitude; }
+            get { return _altitude; }
             set
             {
-                this._altitude = value;
-                //当俯仰角度获取模式为天线高度时：计算大臂俯仰角，其正弦为(海拔提升高度/安装位置距俯仰轴距离)，然后再减去因为天线抬起所造成的角度冗余
-                if (BaseConst.PitchAngleMode == PitchAngleMode.AntennaHeight)
+                _altitude = value;
+                ////当俯仰角度获取模式为天线高度时：计算大臂俯仰角，其正弦为(海拔提升高度/安装位置距俯仰轴距离)，然后再减去因为天线抬起所造成的角度冗余
+                //if (BaseConst.PitchAngleMode == PitchAngleMode.AntennaHeight)
+                //当单机姿态获取模式为北斗时：计算大臂俯仰角，其正弦为(海拔提升高度/安装位置距俯仰轴距离)，然后再减去因为天线抬起所造成的角度冗余
+                if (BaseConst.PostureMode == PostureMode.Beidou)
                 {
-                    BaseConst.PitchAngleAnteRadian = Math.Asin((this._altitude - BaseConst.HeightZero) / BaseConst.Dist2PitchAxis_Real);
+                    BaseConst.PitchAngleAnteRadian = Math.Asin((_altitude - BaseConst.HeightZero) / BaseConst.Dist2PitchAxis_Real);
                     BaseConst.PitchAngleTipRadian = BaseConst.PitchAngleAnteRadian - BaseConst.PitchAngleRadian_AnteRedun + BaseConst.PitchAngleRadian_TipRedun;
-                    this.PitchAngle = Math.Round((BaseConst.PitchAngleAnteRadian - BaseConst.PitchAngleRadian_AnteRedun) * 180 / Math.PI, 3) + BaseConst.PitchOffset;
+                    PitchAngle = Math.Round((BaseConst.PitchAngleAnteRadian - BaseConst.PitchAngleRadian_AnteRedun) * 180 / Math.PI, 3) + BaseConst.PitchOffset;
                 }
             }
         }
@@ -161,29 +165,21 @@ namespace GetGpsToOpcAndDb.Model
         /// <summary>
         /// 行走位置
         /// </summary>
-        [ProtoMember(4)]
         public double WalkingPosition { get; set; }
 
         /// <summary>
         /// 大臂俯仰角
         /// </summary>
-        [ProtoMember(5)]
         public double PitchAngle
         {
-            get { return this._pitch_angle; }
-            set { this._pitch_angle = value; }
+            get { return _pitch_angle; }
+            set { _pitch_angle = value; }
         }
-
-        ///// <summary>
-        ///// 回转角（到本地北的角度，单位度）
-        ///// </summary>
-        //public double YawAngle { get; set; }
 
         private double _yaw_angle = 0;
         /// <summary>
         /// 回转角（到本地北的角度，单位度）
         /// </summary>
-        [ProtoMember(6)]
         public double YawAngle
         {
             get { return _yaw_angle; }
@@ -207,8 +203,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public Coordinate LocalCoor_Ante
         {
-            get { return this.local_coor_ante; }
-            set { this.local_coor_ante = value; }
+            get { return local_coor_ante; }
+            set { local_coor_ante = value; }
         }
 
         /// <summary>
@@ -216,8 +212,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public Coordinate LocalCoor_SymAxis
         {
-            get { return this.local_coor_sym; }
-            set { this.local_coor_sym = value; }
+            get { return local_coor_sym; }
+            set { local_coor_sym = value; }
         }
 
         /// <summary>
@@ -225,8 +221,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public Coordinate LocalCoor_PitchAxis
         {
-            get { return this.local_coor_pitch; }
-            set { this.local_coor_pitch = value; }
+            get { return local_coor_pitch; }
+            set { local_coor_pitch = value; }
         }
 
         /// <summary>
@@ -234,8 +230,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public Coordinate LocalCoor_YawAxis
         {
-            get { return this.local_coor_yaw; }
-            set { this.local_coor_yaw = value; }
+            get { return local_coor_yaw; }
+            set { local_coor_yaw = value; }
         }
 
         /// <summary>
@@ -243,8 +239,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public Coordinate LocalCoor_Tip
         {
-            get { return this.local_coor_tip; }
-            set { this.local_coor_tip = value; }
+            get { return local_coor_tip; }
+            set { local_coor_tip = value; }
         }
         #endregion
 
@@ -287,6 +283,18 @@ namespace GetGpsToOpcAndDb.Model
         public bool IsTrueNorth { get; set; }
         #endregion
 
+        #region HEADING
+        /// <summary>
+        /// 基线长度
+        /// </summary>
+        public double BaselineLength { get; set; }
+
+        /// <summary>
+        /// 天线俯仰
+        /// </summary>
+        public double AntePitch { get; set; }
+        #endregion
+
         #region GPRMC
         /// <summary>
         /// 位置状态是否有效
@@ -319,25 +327,17 @@ namespace GetGpsToOpcAndDb.Model
         public string ModeIndicator { get; set; }
         #endregion
 
+        #region RTKPOS
         /// <summary>
-        /// 经度标签名称
+        /// 位置信息解出类型
         /// </summary>
-        public string LongitudeItemId { get; set; }
+        public SolutionStatus SolutionStatus { get; set; }
 
         /// <summary>
-        /// 纬度标签名称
+        /// 位置或速度类型
         /// </summary>
-        public string LatitudeItemId { get; set; }
-
-        /// <summary>
-        /// 高度标签名称
-        /// </summary>
-        public string AltitudeItemId { get; set; }
-
-        /// <summary>
-        /// 俯仰角度标签名称
-        /// </summary>
-        public string PitchItemId { get; set; }
+        public PositionVelocityType PositionType { get; set; }
+        #endregion
         #endregion
 
         /// <summary>
@@ -346,15 +346,23 @@ namespace GetGpsToOpcAndDb.Model
         /// <param name="claimerId">大机ID</param>
         public GnssInfoObject()
         {
-            this.DictErrorMessages = new Dictionary<string, string>() { { "GNSS", string.Empty }, { "WebService", string.Empty }, { "OPC", string.Empty }, { "DataService", string.Empty } };
-            this.MessageType = GnssMessageType.Unknown;
-            this.RTKPOS = new Rtkpos(this);
-            this.GPGGA = new Gpgga(this);
-            this.GPRMC = new Gprmc(this);
-            this.GPHDT = new Gphdt(this);
-            this.LongitudeItemId = string.Empty;
-            this.LatitudeItemId = string.Empty;
-            this.AltitudeItemId = string.Empty;
+            _raiser.ThresholdReached += new TimerEventRaiser.ThresholdReachedEventHandler(Raiser_ThresholdReached);
+            _raiser.Run();
+            DictErrorMessages = new Dictionary<string, string>() { { "GNSS", string.Empty }, { "WebService", string.Empty }, { "OPC", string.Empty }, { "DataService", string.Empty } };
+            MessageType = GnssMessageType.Unknown;
+            RTKPOS = new Rtkpos(this);
+            GPGGA = new Gpgga(this);
+            GPRMC = new Gprmc(this);
+            GPHDT = new Gphdt(this);
+            HEADING = new Heading(this);
+            //LongitudeItemId = string.Empty;
+            //LatitudeItemId = string.Empty;
+            //AltitudeItemId = string.Empty;
+        }
+
+        private void Raiser_ThresholdReached(object sender, ThresholdReachedEventArgs e)
+        {
+            TrackDirection_Received = false;
         }
 
         #region 信息处理与分类
@@ -368,13 +376,13 @@ namespace GetGpsToOpcAndDb.Model
                 return;
             string[] messages = input.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var message in messages)
-                this.ClassifyEach(message);
+                ClassifyEach(message);
 
             //TODO 假如经纬度有任何一个为0，退出
-            if (this.Latitude == 0 || this.Longitude == 0)
+            if (Latitude == 0 || Longitude == 0)
                 return;
-            this.GetLocalCoordinates();
-            this.SaveInfo();
+            GetLocalCoordinates();
+            SaveInfo();
         }
 
         /// <summary>
@@ -383,33 +391,37 @@ namespace GetGpsToOpcAndDb.Model
         /// <param name="message"></param>
         public void ClassifyEach(string message)
         {
-            string typeName = this.regex_type.Match(message).Value.Trim('$', ',', '#').ToUpper(); //GNSS消息类型，去除多余符号
+            string typeName = _regex.Match(message).Value.Trim('$', ',', '#').ToUpper(); //GNSS消息类型，去除多余符号
             GnssMessageType type;
             //尝试转换为枚举，假如转换失败，标记为未知类型
             Enum.TryParse<GnssMessageType>(typeName, out type);
             if (!Enum.IsDefined(typeof(GnssMessageType), type))
                 type = GnssMessageType.Unknown;
-            this.MessageType = type;
+            MessageType = type;
 
-            switch (this.MessageType)
+            switch (MessageType)
             {
                 //RTKPOS, MATCHEDPOS, PSRPOS与BESTPOS的结构一样，可以使用相同的解析方法
                 case GnssMessageType.MATCHEDPOSA:
                 case GnssMessageType.RTKPOSA:
                 case GnssMessageType.PSRPOSA:
                 case GnssMessageType.BESTPOSA:
-                    this.RTKPOS.Analyze(ref message);
+                case GnssMessageType.BESTPOS2A:
+                    RTKPOS.Analyze(ref message);
                     break;
                 case GnssMessageType.GNGGA:
                 case GnssMessageType.GPGGA:
-                    this.GPGGA.Analyze(ref message);
+                    GPGGA.Analyze(ref message);
                     break;
                 case GnssMessageType.GPRMC:
-                    this.GPRMC.Analyze(ref message);
+                    GPRMC.Analyze(ref message);
                     break;
                 case GnssMessageType.GNHDT:
                 case GnssMessageType.GPHDT:
-                    this.GPHDT.Analyze(ref message);
+                    GPHDT.Analyze(ref message);
+                    break;
+                case GnssMessageType.HEADINGA:
+                    HEADING.Analyze(ref message);
                     break;
                 case GnssMessageType.Unknown:
                     return;
@@ -423,8 +435,8 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public void GetLocalCoordinates()
         {
-            //GetLocalCoordinates(BaseConst.PitchAngleAnteRadian, this.YawAngle * Math.PI / 180, BaseConst.AnteDist2SymAxis, BaseConst.Dist2PitchAxis_Real, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real, BaseConst.PitchAngleTipRadian);
-            GetLocalCoordinates(this.PitchAngle * Math.PI / 180 + BaseConst.PitchAngleRadian_AnteRedun, this.YawAngle * Math.PI / 180, BaseConst.AnteDist2SymAxis, BaseConst.Dist2PitchAxis_Real, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real, BaseConst.PitchAngleTipRadian);
+            //GetLocalCoordinates(BaseConst.PitchAngleAnteRadian, YawAngle * Math.PI / 180, BaseConst.AnteDist2SymAxis, BaseConst.Dist2PitchAxis_Real, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real, BaseConst.PitchAngleTipRadian);
+            GetLocalCoordinates(PitchAngle * Math.PI / 180 + BaseConst.PitchAngleRadian_AnteRedun, YawAngle * Math.PI / 180, BaseConst.AnteDist2SymAxis, BaseConst.Dist2PitchAxis_Real, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real, BaseConst.PitchAngleTipRadian);
         }
 
         /// <summary>
@@ -439,7 +451,7 @@ namespace GetGpsToOpcAndDb.Model
         /// <param name="pitch_tip_rad">大臂俯仰角</param>
         public void GetLocalCoordinates(double pitch_rad, double yaw_rad, double dist_sym, double dist_pitch, double dist_pitch_yaw, double dist_tip_pitch, double pitch_tip_rad)
         {
-            double lat = this.Latitude, lon = this.Longitude, alt = this.Altitude;
+            double lat = Latitude, lon = Longitude, alt = Altitude;
             double x0, x1, x2, x3, x4, y0, y1, y2, y3, y4, z0, z1, z2, z3, z4; //分别为定位天线坐标，大臂对称轴投影坐标，俯仰轴坐标，回转轴坐标，臂架顶点坐标
             //double xc = 0, yc = 0; //回转轴在单机轨道坐标系下的坐标
             x0 = x1 = x2 = x3 = x4 = lon;
@@ -448,17 +460,17 @@ namespace GetGpsToOpcAndDb.Model
             if (!BaseConst.ConvertEnabled)
                 goto Ending;
 
-            BaseFunc.GetCoordinates(lat, lon, ref x0, ref y0); //定位天线本地坐标
+            //BaseFunc.GetCoordinates(lat, lon, alt, ref x0, ref y0, ref z0); //定位天线本地坐标
+            BaseFunc.GetLocalCoordinates(lat, lon, alt, ref x0, ref y0, ref z0); //定位天线本地坐标
             double cospitch = Math.Cos(pitch_rad), sinpitch = Math.Sin(pitch_rad), cosyaw = Math.Cos(yaw_rad), sinyaw = Math.Sin(yaw_rad);
             //定位天线在大臂对称轴上的投影坐标
             x1 = x0 - dist_sym * cosyaw;
             y1 = y0 + dist_sym * sinyaw;
+            //z1 = z0;
             //俯仰轴本地坐标
             x2 = x1 - dist_pitch * cospitch * sinyaw;
             y2 = y1 - dist_pitch * cospitch * cosyaw;
-            //y2 = y1 - BaseConst.Dist2SymAxis;
-            //当大臂向上摆俯仰角为正时系数为-1，否则为1
-            z2 = z1 + -1 * dist_pitch * sinpitch;
+            z2 = z1 - dist_pitch * sinpitch;
             //回转轴本地坐标
             x3 = x2 - dist_pitch_yaw * sinyaw;
             y3 = y2 - dist_pitch_yaw * cosyaw;
@@ -468,12 +480,59 @@ namespace GetGpsToOpcAndDb.Model
             y4 = y2 + dist_tip_pitch * Math.Cos(pitch_tip_rad) * cosyaw;
             z4 = z2 + dist_tip_pitch * Math.Sin(pitch_tip_rad);
         Ending:
-            this.LocalCoor_Ante.Update(x0, y0, z0);
-            this.LocalCoor_SymAxis.Update(x1, y1, z1);
-            this.LocalCoor_PitchAxis.Update(x2, y2, z2);
-            this.LocalCoor_YawAxis.Update(x3, y3, z3);
-            this.LocalCoor_Tip.Update(x4, y4, z4);
-            this.WalkingPosition = (BaseConst.WalkingNorth == BaseConst.AxisSwapped ? this.LocalCoor_YawAxis.XClaimer : this.LocalCoor_YawAxis.YClaimer) + BaseConst.WalkingOffset;
+            LocalCoor_Ante.Update(x0, y0, z0);
+            LocalCoor_SymAxis.Update(x1, y1, z1);
+            LocalCoor_PitchAxis.Update(x2, y2, z2);
+            LocalCoor_YawAxis.Update(x3, y3, z3);
+            LocalCoor_Tip.Update(x4, y4, z4);
+            WalkingPosition = (BaseConst.WalkingNorth == BaseConst.AxisSwapped ? LocalCoor_YawAxis.XClaimer : LocalCoor_YawAxis.YClaimer) + BaseConst.WalkingOffset;
+        }
+
+        /// <summary>
+        /// 将一个坐标的经纬度转换为本地坐标
+        /// </summary>
+        public void GetTipCoordinatesByPostures()
+        {
+            GetTipCoordinatesByPostures(WalkingPosition, PitchAngle * Math.PI / 180 + BaseConst.PitchAngleRadian_TipRedun, YawAngle * Math.PI / 180, BaseConst.DistPitch2YawAxis, BaseConst.DistTip2PitchAxis_Real);
+            PositionType = PositionVelocityType.NARROW_INT;
+            TrackDirection_Received = true;
+            Raiser.Click();
+        }
+
+        /// <summary>
+        /// 将一个坐标的经纬度转换为本地坐标，指定定位天线距俯仰轴的距离与大臂俯仰角
+        /// </summary>
+        /// <param name="walking">走行位置</param>
+        /// <param name="pitch_tip_rad">根据大臂顶端得到的大臂俯仰角（弧度）</param>
+        /// <param name="yaw_rad">大臂回转角（弧度）</param>
+        /// <param name="dist_pitch_yaw">俯仰轴到回转轴的距离（米）</param>
+        /// <param name="dist_tip_pitch">大臂顶端距俯仰轴的实际距离（米）</param>
+        public void GetTipCoordinatesByPostures(double walking, double pitch_tip_rad, double yaw_rad, double dist_pitch_yaw, double dist_tip_pitch)
+        {
+            double x0, x1, x2, x3, y0, y1, y2, y3, z0, z1, z2, z3; //分别为〇点坐标，回转轴坐标，俯仰轴坐标，臂架顶点坐标
+            x0 = BaseConst.TrackOriginX;
+            y0 = BaseConst.TrackOriginY;
+            z0 = BaseConst.TrackOriginZ;
+            //if (!BaseConst.ConvertEnabled)
+            //    goto Ending;
+
+            double cospitch = Math.Cos(pitch_tip_rad), sinpitch = Math.Sin(pitch_tip_rad), cosyaw = Math.Cos(yaw_rad), sinyaw = Math.Sin(yaw_rad);
+            //回转轴本地坐标
+            x1 = x0 + (BaseConst.WalkingNorth ? 0 : walking);
+            y1 = y0 + (BaseConst.WalkingNorth ? walking : 0);
+            z1 = z0;
+            //俯仰轴本地坐标
+            x2 = x1 + dist_pitch_yaw * sinyaw;
+            y2 = y1 + dist_pitch_yaw * cosyaw;
+            z2 = z1;
+            //臂架顶端本地坐标
+            x3 = x2 + dist_tip_pitch * cospitch * sinyaw;
+            y3 = y2 + dist_tip_pitch * cospitch * cosyaw;
+            z3 = z2 + dist_tip_pitch * sinpitch;
+        //Ending:
+            LocalCoor_YawAxis.Update(x1, y1, z1);
+            LocalCoor_PitchAxis.Update(x2, y2, z2);
+            LocalCoor_Tip.Update(x3, y3, z3);
         }
         #endregion
 
@@ -483,9 +542,9 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public void SaveInfo()
         {
-            this.WriteOpcValue();
-            this.CallWebService();
-            this.CallDataService();
+            //WriteOpcValue();
+            CallWebService();
+            CallDataService();
         }
 
         /// <summary>
@@ -502,53 +561,15 @@ namespace GetGpsToOpcAndDb.Model
                         BaseConst.WebClient.Open();
                     //根据大机编号更新t_gps_machines
                     //TODO 是否将此处经纬度改为本地XYZ坐标
-                    if (!BaseConst.WebClient.save_gps_machines(this.ClaimerId, this.Longitude, this.Latitude))
-                        message = string.Format("为ID为{0}的大机调用Web服务返回失败结果", this.ClaimerId);
+                    if (!BaseConst.WebClient.save_gps_machines(ClaimerId, Longitude, Latitude))
+                        message = string.Format("为ID为{0}的大机调用Web服务返回失败结果", ClaimerId);
                 }
                 catch (Exception e)
                 {
-                    //message = string.Format("为ID为{0}的大机调用Web服务时出错：{1}", this.ClaimerId, e.Message);
-                    message = string.Format("为ID为{0}的大机调用Web服务时出错: {1}", this.ClaimerId, e.Message);
+                    //message = string.Format("为ID为{0}的大机调用Web服务时出错：{1}", ClaimerId, e.Message);
+                    message = string.Format("为ID为{0}的大机调用Web服务时出错: {1}", ClaimerId, e.Message);
                 }
-                this.DictErrorMessages["WebService"] = string.Format("{0} [{1:yyyy-MM-dd HH:mm:ss}]", message, DateTime.Now);
-            }))
-            { IsBackground = true }.Start();
-        }
-
-        /// <summary>
-        /// 将GNSS信息通过OPC写入
-        /// </summary>
-        public void WriteOpcValue()
-        {
-            new Thread(new ThreadStart(() =>
-            {
-                if (!BaseConst.OpcHelper.OpcConnected)
-                    return;
-
-                string message;
-                try
-                {
-                    //向OPC写入本地坐标，假如设置为不转换为本地坐标，则写入经纬度，写入前乘以OPC数值更新系数
-                    BaseConst.OpcWriteLongitude.Value = (this.LocalCoor_Ante.X * BaseConst.OpcUpdateRatio).ToString();
-                    BaseConst.OpcWriteLatitude.Value = (this.LocalCoor_Ante.Y * BaseConst.OpcUpdateRatio).ToString();
-                    BaseConst.OpcWriteAltitude.Value = (this.LocalCoor_Ante.Z * BaseConst.OpcUpdateRatio).ToString();
-                    BaseConst.OpcWriteRandom.Value = (this.random.Next(1000)).ToString();
-                    //TODO 假如回转角写入项不为空，修改待写入回转角的值
-                    if (BaseConst.OpcWriteYaw != null)
-                        BaseConst.OpcWriteYaw.Value = (this.TrackDirection_TrueNorth * BaseConst.OpcUpdateRatio).ToString();
-                    if (BaseConst.PitchAngleMode == PitchAngleMode.AntennaHeight)
-                        BaseConst.OpcWritePitch.Value = (this.PitchAngle * BaseConst.OpcUpdateRatio).ToString();
-                    BaseConst.OpcWrite.WriteValues(out message);
-                    //BaseConst.OpcHelper.WriteOpc(this.LongitudeItemId, this.X.ToString(), 1, out message);
-                    //BaseConst.OpcHelper.WriteOpc(this.LatitudeItemId, this.Y.ToString(), 2, out message);
-                    //BaseConst.OpcHelper.WriteOpc(this.AltitudeItemId, this.Z.ToString(), 3, out message);
-                    this.DictErrorMessages["OPC"] = message;
-                }
-                catch (Exception ex)
-                {
-                    message = "向OPC组写入经纬度海拔数据时出现异常：" + ex.Message;
-                    this.DictErrorMessages["OPC"] = message;
-                }
+                DictErrorMessages["WebService"] = string.Format("{0} [{1:yyyy-MM-dd HH:mm:ss}]", message, DateTime.Now);
             }))
             { IsBackground = true }.Start();
         }
@@ -564,16 +585,16 @@ namespace GetGpsToOpcAndDb.Model
                 try
                 {
                     //TODO 是否将此处经纬度改为XYZ
-                    int flag = this.dataService.UpdateClaimerGnssInfo(this.ClaimerId, this.Latitude, this.LatitudeDirection, this.Longitude, this.LongitudeDirection, this.Altitude);
+                    int flag = _dataService.UpdateClaimerGnssInfo(ClaimerId, Latitude, LatitudeDirection, Longitude, LongitudeDirection, Altitude);
                     if (flag <= 0)
-                        message = string.Format("ID为{0}的大机信息更新失败", this.ClaimerId);
+                        message = string.Format("ID为{0}的大机信息更新失败", ClaimerId);
                 }
                 catch (Exception e)
                 {
-                    //this.DictErrorMessages["DataService"] = string.Format("ID为{0}的大机信息更新出错：{1}", this.ClaimerId, e.Message);
-                    message = string.Format("ID为{0}的大机信息更新出错: {1}", this.ClaimerId, e.Message);
+                    //DictErrorMessages["DataService"] = string.Format("ID为{0}的大机信息更新出错：{1}", ClaimerId, e.Message);
+                    message = string.Format("ID为{0}的大机信息更新出错: {1}", ClaimerId, e.Message);
                 }
-                this.DictErrorMessages["DataService"] = string.IsNullOrWhiteSpace(message) ? string.Empty : string.Format("{0} [{1:yyyy-MM-dd HH:mm:ss}]", message, DateTime.Now);
+                DictErrorMessages["DataService"] = string.IsNullOrWhiteSpace(message) ? string.Empty : string.Format("{0} [{1:yyyy-MM-dd HH:mm:ss}]", message, DateTime.Now);
             }))
             { IsBackground = true }.Start();
         }
@@ -595,6 +616,11 @@ namespace GetGpsToOpcAndDb.Model
         /// 最佳可用的GPS位置信息
         /// </summary>
         BESTPOSA = 42,
+
+        /// <summary>
+        /// 最佳可用的GPS位置信息
+        /// </summary>
+        BESTPOS2A = 44,
 
         /// <summary>
         /// 伪距位置信息
@@ -634,7 +660,12 @@ namespace GetGpsToOpcAndDb.Model
         /// <summary>
         /// 以度为单位相对真北方向的航向信息
         /// </summary>
-        GPHDT = 1045
+        GPHDT = 1045,
+
+        /// <summary>
+        /// 航向信息，移动基站（MOVINGBASE）至定向接收机（HEADING）间基线向量顺时针方向与真北的夹角
+        /// </summary>
+        HEADINGA = 971,
     }
 
     /// <summary>

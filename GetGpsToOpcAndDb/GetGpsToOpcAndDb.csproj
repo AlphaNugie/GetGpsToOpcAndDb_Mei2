@@ -65,6 +65,9 @@
     <Reference Include="CommonLib.DataUtil.OracleProviderLib">
       <HintPath>..\..\..\CommonLib\CommonLib\CommonLib.DataUtil.OracleProviderLib\bin\Debug\CommonLib.DataUtil.OracleProviderLib.dll</HintPath>
     </Reference>
+    <Reference Include="CommonLib.DataUtil.SqliteProviderLib">
+      <HintPath>..\..\..\CommonLib\CommonLib\CommonLib.DataUtil.SqliteProviderLib\bin\Debug\CommonLib.DataUtil.SqliteProviderLib.dll</HintPath>
+    </Reference>
     <Reference Include="Interop.OPCAutomation, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -97,8 +100,12 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite">
+      <HintPath>..\..\..\DLL\System.Data.SQLite.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -120,6 +127,7 @@
     </Compile>
     <Compile Include="Core\Base.cs" />
     <Compile Include="Core\DataService_GnssInfo.cs" />
+    <Compile Include="Core\DataService_Opc.cs" />
     <Compile Include="Model\Coordinate.cs" />
     <Compile Include="Model\GnssInfoObject.cs" />
     <Compile Include="FormMain.cs">
@@ -132,6 +140,9 @@
     <Compile Include="Model\Gpgga.cs" />
     <Compile Include="Model\Gphdt.cs" />
     <Compile Include="Model\Gprmc.cs" />
+    <Compile Include="Model\Heading.cs" />
+    <Compile Include="Model\OpcDataSource.cs" />
+    <Compile Include="Model\OpcTask.cs" />
     <Compile Include="Model\Position.cs" />
     <Compile Include="Model\Rtkpos.cs" />
     <Compile Include="Program.cs" />
@@ -150,7 +161,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include=".editorconfig" />
     <None Include="App.config" />
+    <None Include="bin\x86\Debug\base.db" />
     <None Include="bin\x86\Debug\Config.ini" />
     <None Include="Connected Services\WbService\IWbService.wsdl" />
     <None Include="packages.config" />

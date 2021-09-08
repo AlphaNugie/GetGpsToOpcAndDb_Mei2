@@ -23,12 +23,12 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public string ErrorMessage
         {
-            get { return this.message; }
+            get { return message; }
             set
             {
-                this.message = value;
-                if (this.Parent != null)
-                    this.Parent.DictErrorMessages["GNSS"] = this.message;
+                message = value;
+                if (Parent != null)
+                    Parent.DictErrorMessages["GNSS"] = message;
             }
         }
 
@@ -49,7 +49,7 @@ namespace GetGpsToOpcAndDb.Model
         /// <param name="parent">上级类</param>
         public GnssBaseMessage(GnssInfoObject parent)
         {
-            this.Parent = parent;
+            Parent = parent;
         }
 
         /// <summary>
@@ -58,17 +58,17 @@ namespace GetGpsToOpcAndDb.Model
         /// <param name="message"></param>
         public virtual void Analyze(ref string message)
         {
-            this.ErrorMessage = string.Empty;
-            message = this.regex_message.Match(message).Value;
+            ErrorMessage = string.Empty;
+            message = regex_message.Match(message).Value;
             if (string.IsNullOrEmpty(message))
-                this.ErrorMessage = "未找到符合格式的GNSS消息";
+                ErrorMessage = "未找到符合格式的GNSS消息";
             //假如校验和与CRC32均未校验通过
             //else if (!BaseFunc.IsChecksumVerified(message) && !BaseFunc.IsCrc32Verified(message))
             else if (!HexHelper.IsGnssChecksumVerified(message) && !HexHelper.IsGnssCRC32Verified(message))
-                this.ErrorMessage = "GNSS消息未通过校验";
+                ErrorMessage = "GNSS消息未通过校验";
 
-            if (string.IsNullOrWhiteSpace(this.ErrorMessage))
-                this.OriginalMessage = message;
+            if (string.IsNullOrWhiteSpace(ErrorMessage))
+                OriginalMessage = message;
         }
     }
 }

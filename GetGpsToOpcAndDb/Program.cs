@@ -1,5 +1,6 @@
 ﻿using GetGpsToOpcAndDb.Core;
 using GetGpsToOpcAndDb.Model;
+using Microsoft.SqlServer.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,20 @@ namespace GetGpsToOpcAndDb
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
             BaseFunc.InitConfigs();
             #region test
+            //double inputd1 = 300.3;
+            //string inputs1 = "400.s4";
+            //double.TryParse(.TryParse(inputs1, out inputd1);
+            //return;
+
+            //double lat = 38.3579708, lon = 117.90819113, alt = 0.0897, x = 0, y = 0, z = 0;
+            //BaseFunc.GpsChange(lat, lon, alt, ref x, ref y, ref z);
+            //BaseFunc.GetCoordinates(lat, lon, ref x, ref y);
+
+            ////SqlGeography graphy1 = SqlGeography.Point(38.37030552, 117.9177707, BaseConst.SystemId), graphy2 = SqlGeography.Point(38.36387604, 117.90369888, BaseConst.SystemId);
+            //SqlGeography graphy1 = SqlGeography.Point(38.22218331, 117.55066242, BaseConst.SystemId), graphy2 = SqlGeography.Point(38.21832563, 117.54221933, BaseConst.SystemId);
+            //double dist = graphy1.STDistance(graphy2).Value;
+            //return;
+
             //double test = Math.Atan(0.0615568);
             //test = test * 180 / Math.PI;
             //return;

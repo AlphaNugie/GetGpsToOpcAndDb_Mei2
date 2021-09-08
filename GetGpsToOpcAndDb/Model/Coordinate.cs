@@ -22,12 +22,12 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public double X
         {
-            get { return this.x; }
+            get { return x; }
             set
             {
-                this.x = Math.Round(value, 3);
-                this.xp = Math.Round(this.x * BaseConst.AxisRatios[0] + BaseConst.AxisRatios[1], 3);
-                this.xc = Math.Round(this.xp - BaseConst.TrackCoordinate.xp, 3);
+                x = Math.Round(value, 3);
+                xp = Math.Round(x * BaseConst.AxisRatios[0] + BaseConst.AxisRatios[1], 3);
+                xc = Math.Round(xp - BaseConst.TrackCoordinate.xp, 3);
             }
         }
 
@@ -36,12 +36,12 @@ namespace GetGpsToOpcAndDb.Model
         /// </summary>
         public double Y
         {
-            get { return this.y; }
+            get { return y; }
             set
             {
-                this.y = Math.Round(value, 3);
-                this.yp = Math.Round(this.y * BaseConst.AxisRatios[2] + BaseConst.AxisRatios[3], 3);
-                this.yc = Math.Round(this.yp - BaseConst.TrackCoordinate.yp, 3);
+                y = Math.Round(value, 3);
+                yp = Math.Round(y * BaseConst.AxisRatios[2] + BaseConst.AxisRatios[3], 3);
+                yc = Math.Round(yp - BaseConst.TrackCoordinate.yp, 3);
             }
         }
 
@@ -51,13 +51,13 @@ namespace GetGpsToOpcAndDb.Model
         [ProtoMember(5)]
         public double Z
         {
-            get { return this.z; }
+            get { return z; }
             set
             {
-                this.z = Math.Round(value, 3);
-                this.zp = this.z;
-                this.zc = Math.Round(this.zp - BaseConst.TrackCoordinate.z, 3);
-                //this.ZClaimer = this.z - BaseConst.TrackCoordinate.z;
+                z = Math.Round(value, 3);
+                zp = z;
+                zc = Math.Round(zp - BaseConst.TrackCoordinate.z, 3);
+                //ZClaimer = z - BaseConst.TrackCoordinate.z;
             }
         }
         #endregion
@@ -66,34 +66,34 @@ namespace GetGpsToOpcAndDb.Model
         /// <summary>
         /// 处理后X坐标：X'
         /// </summary>
-        public double XPrime { get { return !BaseConst.AxisSwapped ? this.xp : this.yp; } }
+        public double XPrime { get { return !BaseConst.AxisSwapped ? xp : yp; } }
 
         /// <summary>
         /// 处理后Y坐标：Y'
         /// </summary>
-        public double YPrime { get { return !BaseConst.AxisSwapped ? this.yp : this.xp; } }
+        public double YPrime { get { return !BaseConst.AxisSwapped ? yp : xp; } }
 
         /// <summary>
         /// 处理后Z坐标：Z'
         /// </summary>
-        public double ZPrime { get { return this.zp; } }
+        public double ZPrime { get { return zp; } }
         #endregion
 
         #region 单机坐标
         /// <summary>
         /// 相对于单机轨道起点的X坐标（基于处理后的X坐标）
         /// </summary>
-        public double XClaimer { get { return !BaseConst.AxisSwapped ? this.xc : this.yc; } }
+        public double XClaimer { get { return !BaseConst.AxisSwapped ? xc : yc; } }
 
         /// <summary>
         /// 相对于单机轨道起点的Y坐标（基于处理后的Y坐标）
         /// </summary>
-        public double YClaimer { get { return !BaseConst.AxisSwapped ? this.yc : this.xc; } }
+        public double YClaimer { get { return !BaseConst.AxisSwapped ? yc : xc; } }
 
         /// <summary>
         /// 相对于单机轨道起点的Z坐标
         /// </summary>
-        public double ZClaimer { get { return this.zc; } }
+        public double ZClaimer { get { return zc; } }
         #endregion
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace GetGpsToOpcAndDb.Model
         /// <param name="z">Z坐标</param>
         public Coordinate(double x, double y, double z)
         {
-            this.Update(x, y, z);
+            Update(x, y, z);
         }
 
         /// <summary>
@@ -120,9 +120,9 @@ namespace GetGpsToOpcAndDb.Model
         /// <param name="z">更新后Z坐标</param>
         public void Update(double x, double y, double z)
         {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
+            X = x;
+            Y = y;
+            Z = z;
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace GetGpsToOpcAndDb.Model
         /// <returns></returns>
         public override string ToString()
         {
-            return this.ToString("prime");
+            return ToString("prime");
         }
 
         /// <summary>
@@ -145,13 +145,13 @@ namespace GetGpsToOpcAndDb.Model
             switch (param)
             {
                 case "prime":
-                    output = string.Format("{0}, {1}, {2}", this.XPrime, this.YPrime, this.ZPrime);
+                    output = string.Format("{0}, {1}, {2}", XPrime, YPrime, ZPrime);
                     break;
                 case "claimer":
-                    output = string.Format("{0}, {1}, {2}", this.XClaimer, this.YClaimer, this.ZClaimer);
+                    output = string.Format("{0}, {1}, {2}", XClaimer, YClaimer, ZClaimer);
                     break;
                 default:
-                    output = string.Format("{0}, {1}, {2}", this.X, this.Y, this.Z);
+                    output = string.Format("{0}, {1}, {2}", X, Y, Z);
                     break;
             }
             return output;

@@ -63,10 +63,15 @@ namespace GetGpsToOpcAndDb.Model
             //假如出现错误信息，则退出
             if (!string.IsNullOrWhiteSpace(this.ErrorMessage))
                 return;
+            Parent.Raiser.Click();
             string[] temp = message.Split(',', '*');
             try
             {
-                this.TrackDirection_TrueNorth = double.Parse(temp[1]);
+                double angle = 0;
+                Parent.TrackDirection_Received = double.TryParse(temp[1], out angle);
+                if (Parent.TrackDirection_Received)
+                    TrackDirection_TrueNorth = angle;
+                //this.TrackDirection_TrueNorth = double.Parse(temp[1]);
                 this.IsTrueNorth = temp[2].Equals("T");
             }
             catch (Exception) { }

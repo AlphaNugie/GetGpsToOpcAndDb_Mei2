@@ -39,7 +39,7 @@
             this.btnConnLocalServer = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.statusStrip_Opc = new System.Windows.Forms.StatusStrip();
             this.statusLabel_ServerState = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusLabel_ServerStartTime = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusLabel_Version = new System.Windows.Forms.ToolStripStatusLabel();
@@ -59,18 +59,12 @@
             this.textBox_TestItemId = new System.Windows.Forms.TextBox();
             this.label14 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.textBox_PitchItemId = new System.Windows.Forms.TextBox();
-            this.textBox_AltitudeItemId = new System.Windows.Forms.TextBox();
             this.label_OpcError = new System.Windows.Forms.Label();
-            this.textBox_LatitudeItemId = new System.Windows.Forms.TextBox();
-            this.label22 = new System.Windows.Forms.Label();
-            this.textBox_LongitudeItemId = new System.Windows.Forms.TextBox();
-            this.label19 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.button_UiUpdate = new System.Windows.Forms.Button();
+            this.checkBox_UiUpdateRecur = new System.Windows.Forms.CheckBox();
             this.textBox_PitchAngle = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
+            this.label_GpsQuality = new System.Windows.Forms.Label();
             this.label_MessageError = new System.Windows.Forms.Label();
             this.textBox_ClaimerId = new System.Windows.Forms.TextBox();
             this.textBox_GpsQuality = new System.Windows.Forms.TextBox();
@@ -80,7 +74,7 @@
             this.label12 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label18 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
+            this.label_TrackDirection = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.textBox_MagDec = new System.Windows.Forms.TextBox();
             this.textBox_TrackLocalNorth = new System.Windows.Forms.TextBox();
@@ -91,6 +85,7 @@
             this.gpsallstr_txt = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.comboBox_ConnMode = new System.Windows.Forms.ComboBox();
             this.label_ReconnCounter = new System.Windows.Forms.Label();
             this.checkBox_AutoCollect = new System.Windows.Forms.CheckBox();
             this.LblTcpState = new System.Windows.Forms.Label();
@@ -105,19 +100,27 @@
             this.timer_UiUpdate = new System.Windows.Forms.Timer(this.components);
             this.statusStrip_WebService = new System.Windows.Forms.StatusStrip();
             this.statusLabel_WebService = new System.Windows.Forms.ToolStripStatusLabel();
-            this.statusStrip_DataService = new System.Windows.Forms.StatusStrip();
-            this.statusLabel_DataService = new System.Windows.Forms.ToolStripStatusLabel();
             this.timer_Reconn = new System.Windows.Forms.Timer(this.components);
             this.timer_OpcUpdate = new System.Windows.Forms.Timer(this.components);
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timer_Upload = new System.Windows.Forms.Timer(this.components);
             this.button_Expand = new System.Windows.Forms.Button();
             this.textBox_Info = new System.Windows.Forms.TextBox();
             this.button_CopyToClipboard = new System.Windows.Forms.Button();
             this.label_Copied = new System.Windows.Forms.Label();
+            this.button_RecordCoors = new System.Windows.Forms.Button();
+            this.timer_RecordCoor = new System.Windows.Forms.Timer(this.components);
+            this.statusLabel_DataService = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusStrip_DataService = new System.Windows.Forms.StatusStrip();
             this.tcpServerMain = new SocketHelper.SocketTcpServer(this.components);
             this.tcpClient = new SocketHelper.SocketTcpClient(this.components);
+            this.tcpServerConn = new SocketHelper.SocketTcpServer(this.components);
+            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.textBox_AntePitch = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.textBox_BaselineLength = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
-            this.statusStrip1.SuspendLayout();
+            this.statusStrip_Opc.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numeric_GroupUpdateRate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numeric_GroupsDeadband)).BeginInit();
@@ -127,6 +130,7 @@
             this.groupBox6.SuspendLayout();
             this.statusStrip_WebService.SuspendLayout();
             this.statusStrip_DataService.SuspendLayout();
+            this.groupBox7.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -233,36 +237,36 @@
             this.label1.Text = "IP地址:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // statusStrip1
+            // statusStrip_Opc
             // 
-            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.statusStrip_Opc.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.statusStrip_Opc.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel_ServerState,
             this.statusLabel_ServerStartTime,
             this.statusLabel_Version});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 672);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 21, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(1448, 26);
-            this.statusStrip1.TabIndex = 15;
-            this.statusStrip1.Text = "statusStrip1";
+            this.statusStrip_Opc.Location = new System.Drawing.Point(0, 672);
+            this.statusStrip_Opc.Name = "statusStrip_Opc";
+            this.statusStrip_Opc.Padding = new System.Windows.Forms.Padding(1, 0, 21, 0);
+            this.statusStrip_Opc.Size = new System.Drawing.Size(1448, 26);
+            this.statusStrip_Opc.TabIndex = 15;
+            this.statusStrip_Opc.Text = "statusStrip1";
             // 
             // statusLabel_ServerState
             // 
             this.statusLabel_ServerState.Name = "statusLabel_ServerState";
-            this.statusLabel_ServerState.Size = new System.Drawing.Size(94, 20);
+            this.statusLabel_ServerState.Size = new System.Drawing.Size(84, 20);
             this.statusLabel_ServerState.Text = "ServerState";
             // 
             // statusLabel_ServerStartTime
             // 
             this.statusLabel_ServerStartTime.Name = "statusLabel_ServerStartTime";
-            this.statusLabel_ServerStartTime.Size = new System.Drawing.Size(127, 20);
+            this.statusLabel_ServerStartTime.Size = new System.Drawing.Size(114, 20);
             this.statusLabel_ServerStartTime.Text = "ServerStartTime";
             // 
             // statusLabel_Version
             // 
             this.statusLabel_Version.Name = "statusLabel_Version";
-            this.statusLabel_Version.Size = new System.Drawing.Size(64, 20);
+            this.statusLabel_Version.Size = new System.Drawing.Size(57, 20);
             this.statusLabel_Version.Text = "Version";
             // 
             // groupBox2
@@ -383,7 +387,7 @@
             this.groupBox4.Controls.Add(this.label15);
             this.groupBox4.Controls.Add(this.textBox_TestItemId);
             this.groupBox4.Controls.Add(this.label14);
-            this.groupBox4.Location = new System.Drawing.Point(15, 472);
+            this.groupBox4.Location = new System.Drawing.Point(15, 324);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(497, 139);
             this.groupBox4.TabIndex = 32;
@@ -447,119 +451,41 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Controls.Add(this.textBox_PitchItemId);
-            this.groupBox3.Controls.Add(this.textBox_AltitudeItemId);
             this.groupBox3.Controls.Add(this.label_OpcError);
-            this.groupBox3.Controls.Add(this.textBox_LatitudeItemId);
-            this.groupBox3.Controls.Add(this.label22);
-            this.groupBox3.Controls.Add(this.textBox_LongitudeItemId);
-            this.groupBox3.Controls.Add(this.label19);
-            this.groupBox3.Controls.Add(this.label4);
-            this.groupBox3.Controls.Add(this.label3);
             this.groupBox3.Location = new System.Drawing.Point(15, 255);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(497, 208);
+            this.groupBox3.Size = new System.Drawing.Size(497, 60);
             this.groupBox3.TabIndex = 33;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "标签";
-            // 
-            // textBox_PitchItemId
-            // 
-            this.textBox_PitchItemId.Location = new System.Drawing.Point(112, 137);
-            this.textBox_PitchItemId.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.textBox_PitchItemId.Name = "textBox_PitchItemId";
-            this.textBox_PitchItemId.Size = new System.Drawing.Size(368, 27);
-            this.textBox_PitchItemId.TabIndex = 3;
-            this.textBox_PitchItemId.TextChanged += new System.EventHandler(this.TextBox_PitchItemId_TextChanged);
-            // 
-            // textBox_AltitudeItemId
-            // 
-            this.textBox_AltitudeItemId.Location = new System.Drawing.Point(112, 100);
-            this.textBox_AltitudeItemId.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.textBox_AltitudeItemId.Name = "textBox_AltitudeItemId";
-            this.textBox_AltitudeItemId.Size = new System.Drawing.Size(368, 27);
-            this.textBox_AltitudeItemId.TabIndex = 3;
-            this.textBox_AltitudeItemId.TextChanged += new System.EventHandler(this.TextBox_AltitudeItemId_TextChanged);
             // 
             // label_OpcError
             // 
             this.label_OpcError.AutoSize = true;
             this.label_OpcError.ForeColor = System.Drawing.Color.Red;
-            this.label_OpcError.Location = new System.Drawing.Point(20, 176);
+            this.label_OpcError.Location = new System.Drawing.Point(22, 24);
             this.label_OpcError.Name = "label_OpcError";
             this.label_OpcError.Size = new System.Drawing.Size(70, 20);
             this.label_OpcError.TabIndex = 2;
             this.label_OpcError.Text = "OPC错误";
             // 
-            // textBox_LatitudeItemId
-            // 
-            this.textBox_LatitudeItemId.Location = new System.Drawing.Point(112, 62);
-            this.textBox_LatitudeItemId.Name = "textBox_LatitudeItemId";
-            this.textBox_LatitudeItemId.Size = new System.Drawing.Size(368, 27);
-            this.textBox_LatitudeItemId.TabIndex = 1;
-            this.textBox_LatitudeItemId.TextChanged += new System.EventHandler(this.TextBox_LatitudeItemId_TextChanged);
-            // 
-            // label22
-            // 
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(20, 140);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(84, 20);
-            this.label22.TabIndex = 0;
-            this.label22.Text = "俯仰标签：";
-            // 
-            // textBox_LongitudeItemId
-            // 
-            this.textBox_LongitudeItemId.Location = new System.Drawing.Point(112, 24);
-            this.textBox_LongitudeItemId.Name = "textBox_LongitudeItemId";
-            this.textBox_LongitudeItemId.Size = new System.Drawing.Size(368, 27);
-            this.textBox_LongitudeItemId.TabIndex = 1;
-            this.textBox_LongitudeItemId.TextChanged += new System.EventHandler(this.TextBox_LongitudeItemId_TextChanged);
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(20, 103);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(84, 20);
-            this.label19.TabIndex = 0;
-            this.label19.Text = "高度标签：";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(20, 65);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(84, 20);
-            this.label4.TabIndex = 0;
-            this.label4.Text = "纬度标签：";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(20, 27);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(84, 20);
-            this.label3.TabIndex = 0;
-            this.label3.Text = "经度标签：";
-            // 
             // groupBox5
             // 
-            this.groupBox5.Controls.Add(this.textBox_PitchAngle);
-            this.groupBox5.Controls.Add(this.label7);
+            this.groupBox5.Controls.Add(this.button_UiUpdate);
+            this.groupBox5.Controls.Add(this.checkBox_UiUpdateRecur);
+            this.groupBox5.Controls.Add(this.label_GpsQuality);
             this.groupBox5.Controls.Add(this.label_MessageError);
-            this.groupBox5.Controls.Add(this.textBox_ClaimerId);
             this.groupBox5.Controls.Add(this.textBox_GpsQuality);
-            this.groupBox5.Controls.Add(this.label13);
-            this.groupBox5.Controls.Add(this.label21);
             this.groupBox5.Controls.Add(this.label20);
             this.groupBox5.Controls.Add(this.label12);
+            this.groupBox5.Controls.Add(this.label4);
             this.groupBox5.Controls.Add(this.label10);
-            this.groupBox5.Controls.Add(this.label18);
-            this.groupBox5.Controls.Add(this.label8);
+            this.groupBox5.Controls.Add(this.label3);
+            this.groupBox5.Controls.Add(this.label_TrackDirection);
             this.groupBox5.Controls.Add(this.label11);
+            this.groupBox5.Controls.Add(this.textBox_BaselineLength);
             this.groupBox5.Controls.Add(this.textBox_MagDec);
-            this.groupBox5.Controls.Add(this.textBox_TrackLocalNorth);
+            this.groupBox5.Controls.Add(this.textBox_AntePitch);
             this.groupBox5.Controls.Add(this.textBox_TrackDirection);
             this.groupBox5.Controls.Add(this.textBox_LatitudeValue);
             this.groupBox5.Controls.Add(this.textBox_Height);
@@ -573,22 +499,44 @@
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "GPS采集";
             // 
+            // button_UiUpdate
+            // 
+            this.button_UiUpdate.Location = new System.Drawing.Point(301, 23);
+            this.button_UiUpdate.Name = "button_UiUpdate";
+            this.button_UiUpdate.Size = new System.Drawing.Size(79, 32);
+            this.button_UiUpdate.TabIndex = 18;
+            this.button_UiUpdate.Text = "手动刷新";
+            this.button_UiUpdate.UseVisualStyleBackColor = true;
+            this.button_UiUpdate.Click += new System.EventHandler(this.Button_UiUpdate_Click);
+            // 
+            // checkBox_UiUpdateRecur
+            // 
+            this.checkBox_UiUpdateRecur.AutoSize = true;
+            this.checkBox_UiUpdateRecur.Checked = true;
+            this.checkBox_UiUpdateRecur.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox_UiUpdateRecur.Location = new System.Drawing.Point(189, 28);
+            this.checkBox_UiUpdateRecur.Name = "checkBox_UiUpdateRecur";
+            this.checkBox_UiUpdateRecur.Size = new System.Drawing.Size(106, 24);
+            this.checkBox_UiUpdateRecur.TabIndex = 17;
+            this.checkBox_UiUpdateRecur.Text = "UI自动刷新";
+            this.checkBox_UiUpdateRecur.UseVisualStyleBackColor = true;
+            // 
             // textBox_PitchAngle
             // 
-            this.textBox_PitchAngle.Location = new System.Drawing.Point(219, 361);
+            this.textBox_PitchAngle.Location = new System.Drawing.Point(371, 27);
             this.textBox_PitchAngle.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.textBox_PitchAngle.Name = "textBox_PitchAngle";
-            this.textBox_PitchAngle.Size = new System.Drawing.Size(76, 27);
+            this.textBox_PitchAngle.Size = new System.Drawing.Size(112, 27);
             this.textBox_PitchAngle.TabIndex = 16;
             // 
-            // label7
+            // label_GpsQuality
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(17, 260);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(54, 20);
-            this.label7.TabIndex = 7;
-            this.label7.Text = "质量：";
+            this.label_GpsQuality.AutoSize = true;
+            this.label_GpsQuality.Location = new System.Drawing.Point(17, 260);
+            this.label_GpsQuality.Name = "label_GpsQuality";
+            this.label_GpsQuality.Size = new System.Drawing.Size(39, 20);
+            this.label_GpsQuality.TabIndex = 7;
+            this.label_GpsQuality.Text = "质量";
             // 
             // label_MessageError
             // 
@@ -602,7 +550,7 @@
             // 
             // textBox_ClaimerId
             // 
-            this.textBox_ClaimerId.Location = new System.Drawing.Point(369, 257);
+            this.textBox_ClaimerId.Location = new System.Drawing.Point(43, 26);
             this.textBox_ClaimerId.Name = "textBox_ClaimerId";
             this.textBox_ClaimerId.Size = new System.Drawing.Size(94, 27);
             this.textBox_ClaimerId.TabIndex = 5;
@@ -613,13 +561,13 @@
             this.textBox_GpsQuality.Location = new System.Drawing.Point(83, 257);
             this.textBox_GpsQuality.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_GpsQuality.Name = "textBox_GpsQuality";
-            this.textBox_GpsQuality.Size = new System.Drawing.Size(212, 27);
+            this.textBox_GpsQuality.Size = new System.Drawing.Size(191, 27);
             this.textBox_GpsQuality.TabIndex = 15;
             // 
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(335, 260);
+            this.label13.Location = new System.Drawing.Point(9, 29);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(24, 20);
             this.label13.TabIndex = 4;
@@ -628,7 +576,7 @@
             // label21
             // 
             this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(180, 365);
+            this.label21.Location = new System.Drawing.Point(326, 30);
             this.label21.Name = "label21";
             this.label21.Size = new System.Drawing.Size(39, 20);
             this.label21.TabIndex = 3;
@@ -655,7 +603,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(306, 364);
+            this.label10.Location = new System.Drawing.Point(296, 364);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(54, 20);
             this.label10.TabIndex = 3;
@@ -664,20 +612,20 @@
             // label18
             // 
             this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(321, 330);
+            this.label18.Location = new System.Drawing.Point(157, 30);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(39, 20);
             this.label18.TabIndex = 3;
             this.label18.Text = "回转";
             // 
-            // label8
+            // label_TrackDirection
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(321, 295);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(39, 20);
-            this.label8.TabIndex = 3;
-            this.label8.Text = "航向";
+            this.label_TrackDirection.AutoSize = true;
+            this.label_TrackDirection.Location = new System.Drawing.Point(310, 260);
+            this.label_TrackDirection.Name = "label_TrackDirection";
+            this.label_TrackDirection.Size = new System.Drawing.Size(39, 20);
+            this.label_TrackDirection.TabIndex = 3;
+            this.label_TrackDirection.Text = "航向";
             // 
             // label11
             // 
@@ -690,44 +638,44 @@
             // 
             // textBox_MagDec
             // 
-            this.textBox_MagDec.Location = new System.Drawing.Point(369, 362);
+            this.textBox_MagDec.Location = new System.Drawing.Point(355, 361);
             this.textBox_MagDec.Name = "textBox_MagDec";
-            this.textBox_MagDec.Size = new System.Drawing.Size(94, 27);
+            this.textBox_MagDec.Size = new System.Drawing.Size(109, 27);
             this.textBox_MagDec.TabIndex = 2;
             // 
             // textBox_TrackLocalNorth
             // 
-            this.textBox_TrackLocalNorth.Location = new System.Drawing.Point(369, 327);
+            this.textBox_TrackLocalNorth.Location = new System.Drawing.Point(202, 26);
             this.textBox_TrackLocalNorth.Name = "textBox_TrackLocalNorth";
-            this.textBox_TrackLocalNorth.Size = new System.Drawing.Size(94, 27);
+            this.textBox_TrackLocalNorth.Size = new System.Drawing.Size(118, 27);
             this.textBox_TrackLocalNorth.TabIndex = 2;
             // 
             // textBox_TrackDirection
             // 
-            this.textBox_TrackDirection.Location = new System.Drawing.Point(369, 292);
+            this.textBox_TrackDirection.Location = new System.Drawing.Point(355, 257);
             this.textBox_TrackDirection.Name = "textBox_TrackDirection";
-            this.textBox_TrackDirection.Size = new System.Drawing.Size(94, 27);
+            this.textBox_TrackDirection.Size = new System.Drawing.Size(109, 27);
             this.textBox_TrackDirection.TabIndex = 2;
             // 
             // textBox_LatitudeValue
             // 
             this.textBox_LatitudeValue.Location = new System.Drawing.Point(83, 327);
             this.textBox_LatitudeValue.Name = "textBox_LatitudeValue";
-            this.textBox_LatitudeValue.Size = new System.Drawing.Size(212, 27);
+            this.textBox_LatitudeValue.Size = new System.Drawing.Size(191, 27);
             this.textBox_LatitudeValue.TabIndex = 2;
             // 
             // textBox_Height
             // 
             this.textBox_Height.Location = new System.Drawing.Point(82, 362);
             this.textBox_Height.Name = "textBox_Height";
-            this.textBox_Height.Size = new System.Drawing.Size(92, 27);
+            this.textBox_Height.Size = new System.Drawing.Size(192, 27);
             this.textBox_Height.TabIndex = 2;
             // 
             // textBox_LongitudeValue
             // 
             this.textBox_LongitudeValue.Location = new System.Drawing.Point(83, 292);
             this.textBox_LongitudeValue.Name = "textBox_LongitudeValue";
-            this.textBox_LongitudeValue.Size = new System.Drawing.Size(212, 27);
+            this.textBox_LongitudeValue.Size = new System.Drawing.Size(191, 27);
             this.textBox_LongitudeValue.TabIndex = 2;
             // 
             // gpsallstr_txt
@@ -749,6 +697,7 @@
             // 
             // groupBox6
             // 
+            this.groupBox6.Controls.Add(this.comboBox_ConnMode);
             this.groupBox6.Controls.Add(this.label_ReconnCounter);
             this.groupBox6.Controls.Add(this.checkBox_AutoCollect);
             this.groupBox6.Controls.Add(this.LblTcpState);
@@ -768,6 +717,22 @@
             this.groupBox6.TabIndex = 37;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "连接GPS设备";
+            // 
+            // comboBox_ConnMode
+            // 
+            this.comboBox_ConnMode.DisplayMember = "MODE_NAME";
+            this.comboBox_ConnMode.FormattingEnabled = true;
+            this.comboBox_ConnMode.Items.AddRange(new object[] {
+            "TCP",
+            "TCPS",
+            "HTTP"});
+            this.comboBox_ConnMode.Location = new System.Drawing.Point(258, 28);
+            this.comboBox_ConnMode.Name = "comboBox_ConnMode";
+            this.comboBox_ConnMode.Size = new System.Drawing.Size(91, 28);
+            this.comboBox_ConnMode.TabIndex = 19;
+            this.comboBox_ConnMode.Text = "TCP";
+            this.comboBox_ConnMode.ValueMember = "MODE_ID";
+            this.comboBox_ConnMode.SelectedIndexChanged += new System.EventHandler(this.ComboBox_ConnMode_SelectedIndexChanged);
             // 
             // label_ReconnCounter
             // 
@@ -801,12 +766,12 @@
             // label16
             // 
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(17, 31);
+            this.label16.Location = new System.Drawing.Point(18, 31);
             this.label16.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(75, 20);
+            this.label16.Size = new System.Drawing.Size(22, 20);
             this.label16.TabIndex = 13;
-            this.label16.Text = "服务器 IP:";
+            this.label16.Text = "IP";
             // 
             // textBox_Command
             // 
@@ -820,20 +785,20 @@
             // 
             // textBox_Port
             // 
-            this.textBox_Port.Location = new System.Drawing.Point(116, 71);
+            this.textBox_Port.Location = new System.Drawing.Point(67, 71);
             this.textBox_Port.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_Port.Name = "textBox_Port";
-            this.textBox_Port.Size = new System.Drawing.Size(103, 27);
+            this.textBox_Port.Size = new System.Drawing.Size(87, 27);
             this.textBox_Port.TabIndex = 15;
             this.textBox_Port.Text = "8888";
             this.textBox_Port.TextChanged += new System.EventHandler(this.TextBox_Port_TextChanged);
             // 
             // textBox_IpAddress
             // 
-            this.textBox_IpAddress.Location = new System.Drawing.Point(116, 28);
+            this.textBox_IpAddress.Location = new System.Drawing.Point(67, 28);
             this.textBox_IpAddress.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox_IpAddress.Name = "textBox_IpAddress";
-            this.textBox_IpAddress.Size = new System.Drawing.Size(243, 27);
+            this.textBox_IpAddress.Size = new System.Drawing.Size(167, 27);
             this.textBox_IpAddress.TabIndex = 11;
             this.textBox_IpAddress.Text = "192.168.1.100";
             this.textBox_IpAddress.TextChanged += new System.EventHandler(this.TextBox_IpAddress_TextChanged);
@@ -841,12 +806,12 @@
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(58, 74);
+            this.label17.Location = new System.Drawing.Point(16, 74);
             this.label17.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(43, 20);
+            this.label17.Size = new System.Drawing.Size(39, 20);
             this.label17.TabIndex = 14;
-            this.label17.Text = "端口:";
+            this.label17.Text = "端口";
             // 
             // button_Connect
             // 
@@ -904,25 +869,6 @@
             this.statusLabel_WebService.Size = new System.Drawing.Size(103, 20);
             this.statusLabel_WebService.Text = "Web服务错误";
             // 
-            // statusStrip_DataService
-            // 
-            this.statusStrip_DataService.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.statusStrip_DataService.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.statusLabel_DataService});
-            this.statusStrip_DataService.Location = new System.Drawing.Point(0, 620);
-            this.statusStrip_DataService.Name = "statusStrip_DataService";
-            this.statusStrip_DataService.Padding = new System.Windows.Forms.Padding(1, 0, 21, 0);
-            this.statusStrip_DataService.Size = new System.Drawing.Size(1448, 26);
-            this.statusStrip_DataService.TabIndex = 39;
-            this.statusStrip_DataService.Text = "statusStrip2";
-            // 
-            // statusLabel_DataService
-            // 
-            this.statusLabel_DataService.ForeColor = System.Drawing.Color.Red;
-            this.statusLabel_DataService.Name = "statusLabel_DataService";
-            this.statusLabel_DataService.Size = new System.Drawing.Size(114, 20);
-            this.statusLabel_DataService.Text = "数据库操作错误";
-            // 
             // timer_Reconn
             // 
             this.timer_Reconn.Interval = 5000;
@@ -933,10 +879,10 @@
             this.timer_OpcUpdate.Interval = 1000;
             this.timer_OpcUpdate.Tick += new System.EventHandler(this.Timer_OpcUpdate_Tick);
             // 
-            // timer1
+            // timer_Upload
             // 
-            this.timer1.Interval = 1000;
-            this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
+            this.timer_Upload.Interval = 1000;
+            this.timer_Upload.Tick += new System.EventHandler(this.Timer_Upload_Tick);
             // 
             // button_Expand
             // 
@@ -984,6 +930,41 @@
             this.label_Copied.Text = "已复制";
             this.label_Copied.Visible = false;
             // 
+            // button_RecordCoors
+            // 
+            this.button_RecordCoors.Font = new System.Drawing.Font("微软雅黑", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button_RecordCoors.Location = new System.Drawing.Point(1235, 16);
+            this.button_RecordCoors.Name = "button_RecordCoors";
+            this.button_RecordCoors.Size = new System.Drawing.Size(83, 36);
+            this.button_RecordCoors.TabIndex = 44;
+            this.button_RecordCoors.Text = "记录开";
+            this.button_RecordCoors.UseVisualStyleBackColor = true;
+            this.button_RecordCoors.Click += new System.EventHandler(this.Button_RecordCoors_Click);
+            // 
+            // timer_RecordCoor
+            // 
+            this.timer_RecordCoor.Interval = 500;
+            this.timer_RecordCoor.Tick += new System.EventHandler(this.Timer_RecordCoor_Tick);
+            // 
+            // statusLabel_DataService
+            // 
+            this.statusLabel_DataService.ForeColor = System.Drawing.Color.Red;
+            this.statusLabel_DataService.Name = "statusLabel_DataService";
+            this.statusLabel_DataService.Size = new System.Drawing.Size(121, 20);
+            this.statusLabel_DataService.Text = "数据库操作错误";
+            // 
+            // statusStrip_DataService
+            // 
+            this.statusStrip_DataService.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.statusStrip_DataService.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.statusLabel_DataService});
+            this.statusStrip_DataService.Location = new System.Drawing.Point(0, 620);
+            this.statusStrip_DataService.Name = "statusStrip_DataService";
+            this.statusStrip_DataService.Padding = new System.Windows.Forms.Padding(1, 0, 21, 0);
+            this.statusStrip_DataService.Size = new System.Drawing.Size(1448, 26);
+            this.statusStrip_DataService.TabIndex = 39;
+            this.statusStrip_DataService.Text = "statusStrip2";
+            // 
             // tcpServerMain
             // 
             this.tcpServerMain.CheckTime = 1000;
@@ -1001,25 +982,91 @@
             // tcpClient
             // 
             this.tcpClient.BaseClient = null;
+            this.tcpClient.IsReconnection = false;
             this.tcpClient.IsStart = false;
             this.tcpClient.IsStartTcpThreading = false;
             this.tcpClient.LocalEndPoint = null;
             this.tcpClient.LocalIp = null;
-            this.tcpClient.RaiseInterval = ((uint)(5000u));
-            this.tcpClient.RaiseThreshold = ((ulong)(5000ul));
+            this.tcpClient.ReceiveBufferSize = 2048;
             this.tcpClient.ReConnectedCount = 0;
             this.tcpClient.ReconnectWhenReceiveNone = true;
             this.tcpClient.RemoteEndPoint = null;
+            this.tcpClient.ServerIp = null;
             this.tcpClient.ServerPort = 25002;
             this.tcpClient.TcpThread = null;
             this.tcpClient.OnReceive += new SocketHelper.SocketTcpClient.ReceivedEventHandler(this.TcpClient_OnReceive);
             this.tcpClient.OnStateInfo += new SocketHelper.SocketTcpClient.StateInfoEventHandler(this.TcpClient_OnStateInfo);
+            // 
+            // tcpServerConn
+            // 
+            this.tcpServerConn.CheckTime = 1000;
+            this.tcpServerConn.HeartBeatCheck = null;
+            this.tcpServerConn.HeartBeatPacket = "X";
+            this.tcpServerConn.IsHeartCheck = false;
+            this.tcpServerConn.IsStartListening = false;
+            this.tcpServerConn.LocalEndPoint = null;
+            this.tcpServerConn.RemoteEndPoint = null;
+            this.tcpServerConn.ServerIp = "127.0.0.1";
+            this.tcpServerConn.ServerPort = 32333;
+            this.tcpServerConn.ServerSocket = null;
+            this.tcpServerConn.StartSockst = null;
+            this.tcpServerConn.Received += new SocketHelper.SocketTcpServer.ReceivedEventHandler(this.TcpServerConn_Received);
+            this.tcpServerConn.OnStateInfo += new SocketHelper.SocketTcpServer.StateInfoEventHandler(this.TcpServerConn_OnStateInfo);
+            this.tcpServerConn.OnClientOnline += new SocketHelper.SocketTcpServer.ClientOnlineEventHandler(this.TcpServerConn_OnClientOnline);
+            // 
+            // groupBox7
+            // 
+            this.groupBox7.Controls.Add(this.textBox_ClaimerId);
+            this.groupBox7.Controls.Add(this.label13);
+            this.groupBox7.Controls.Add(this.textBox_PitchAngle);
+            this.groupBox7.Controls.Add(this.textBox_TrackLocalNorth);
+            this.groupBox7.Controls.Add(this.label18);
+            this.groupBox7.Controls.Add(this.label21);
+            this.groupBox7.Location = new System.Drawing.Point(15, 469);
+            this.groupBox7.Name = "groupBox7";
+            this.groupBox7.Size = new System.Drawing.Size(497, 142);
+            this.groupBox7.TabIndex = 33;
+            this.groupBox7.TabStop = false;
+            this.groupBox7.Text = "单机信息";
+            // 
+            // textBox_AntePitch
+            // 
+            this.textBox_AntePitch.Location = new System.Drawing.Point(355, 292);
+            this.textBox_AntePitch.Name = "textBox_AntePitch";
+            this.textBox_AntePitch.Size = new System.Drawing.Size(109, 27);
+            this.textBox_AntePitch.TabIndex = 2;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(280, 295);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(69, 20);
+            this.label3.TabIndex = 3;
+            this.label3.Text = "天线俯仰";
+            // 
+            // textBox_BaselineLength
+            // 
+            this.textBox_BaselineLength.Location = new System.Drawing.Point(355, 327);
+            this.textBox_BaselineLength.Name = "textBox_BaselineLength";
+            this.textBox_BaselineLength.Size = new System.Drawing.Size(109, 27);
+            this.textBox_BaselineLength.TabIndex = 2;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(280, 330);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(69, 20);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "基线长度";
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1448, 698);
+            this.Controls.Add(this.button_RecordCoors);
             this.Controls.Add(this.label_Copied);
             this.Controls.Add(this.button_CopyToClipboard);
             this.Controls.Add(this.button_Expand);
@@ -1027,8 +1074,9 @@
             this.Controls.Add(this.statusStrip_DataService);
             this.Controls.Add(this.statusStrip_WebService);
             this.Controls.Add(this.groupBox6);
-            this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.statusStrip_Opc);
             this.Controls.Add(this.groupBox5);
+            this.Controls.Add(this.groupBox7);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox2);
@@ -1043,8 +1091,8 @@
             this.Load += new System.EventHandler(this.FormMain_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
+            this.statusStrip_Opc.ResumeLayout(false);
+            this.statusStrip_Opc.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numeric_GroupUpdateRate)).EndInit();
@@ -1061,6 +1109,8 @@
             this.statusStrip_WebService.PerformLayout();
             this.statusStrip_DataService.ResumeLayout(false);
             this.statusStrip_DataService.PerformLayout();
+            this.groupBox7.ResumeLayout(false);
+            this.groupBox7.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1085,10 +1135,6 @@
         private System.Windows.Forms.TextBox textBox_TestItemId;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.TextBox textBox_LatitudeItemId;
-        private System.Windows.Forms.TextBox textBox_LongitudeItemId;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.TextBox gpsallstr_txt;
         private System.Windows.Forms.Label label5;
@@ -1096,7 +1142,7 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.TextBox textBox_LatitudeValue;
         private System.Windows.Forms.TextBox textBox_LongitudeValue;
-        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.StatusStrip statusStrip_Opc;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel_ServerState;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel_ServerStartTime;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel_Version;
@@ -1123,36 +1169,43 @@
         private System.Windows.Forms.Label label_OpcError;
         private System.Windows.Forms.StatusStrip statusStrip_WebService;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel_WebService;
-        private System.Windows.Forms.StatusStrip statusStrip_DataService;
-        private System.Windows.Forms.ToolStripStatusLabel statusLabel_DataService;
-        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label_GpsQuality;
         private System.Windows.Forms.TextBox textBox_GpsQuality;
         private System.Windows.Forms.Label label_OpcInfo;
         private System.Windows.Forms.Timer timer_Reconn;
-        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label_TrackDirection;
         private System.Windows.Forms.TextBox textBox_TrackDirection;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox textBox_MagDec;
         private System.Windows.Forms.TextBox textBox_Command;
-        private System.Windows.Forms.TextBox textBox_AltitudeItemId;
-        private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.TextBox textBox_Height;
         private System.Windows.Forms.TextBox textBox_PitchAngle;
         private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.TextBox textBox_PitchItemId;
-        private System.Windows.Forms.Label label22;
         private System.Windows.Forms.Timer timer_OpcUpdate;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox textBox_TrackLocalNorth;
         private SocketHelper.SocketTcpServer tcpServerMain;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timer_Upload;
         private System.Windows.Forms.Button button_Expand;
         private System.Windows.Forms.TextBox textBox_Info;
         private System.Windows.Forms.Button button_CopyToClipboard;
         private System.Windows.Forms.Label label_Copied;
         private SocketHelper.SocketTcpClient tcpClient;
         private System.Windows.Forms.Label label_ReconnCounter;
+        private System.Windows.Forms.Button button_RecordCoors;
+        private System.Windows.Forms.Timer timer_RecordCoor;
+        private System.Windows.Forms.Button button_UiUpdate;
+        private System.Windows.Forms.CheckBox checkBox_UiUpdateRecur;
+        private System.Windows.Forms.ComboBox comboBox_ConnMode;
+        private SocketHelper.SocketTcpServer tcpServerConn;
+        private System.Windows.Forms.ToolStripStatusLabel statusLabel_DataService;
+        private System.Windows.Forms.StatusStrip statusStrip_DataService;
+        private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox textBox_AntePitch;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox textBox_BaselineLength;
     }
 }
 
